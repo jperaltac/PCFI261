@@ -1,0 +1,23 @@
+# output sitio
+_public/
+
+# LaTeX
+*.aux
+*.log
+*.out
+*.toc
+*.nav
+*.snm
+*.vrb
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+
+# minted
+week*/_minted*/
+
+# PDFs compilados (recomendado)
+week*/notes.pdf
+
+# logs propios
+week*/compilation.log

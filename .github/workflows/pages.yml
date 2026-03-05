@@ -25,16 +25,18 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install system dependencies
+      - name: Install system dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            make \
-            python3 python3-pip \
-            texlive-latex-extra \
-            texlive-latex-recommended \
-            texlive-fonts-recommended \
-            texlive-lang-spanish \
-            latexmk
+          make \
+          python3 python3-pip \
+          latexmk \
+          texlive-latex-recommended \
+          texlive-latex-extra \
+          texlive-fonts-recommended \
+          texlive-fonts-extra \
+          texlive-lang-spanish
 
       - name: Install python dependencies
         run: |

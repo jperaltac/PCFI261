@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import shutil
 import subprocess
+import re
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
@@ -13,6 +14,13 @@ WEEKS_DIR = PUBLIC / "weeks"
 
 ASSET_EXTS = ("*.png", "*.jpg", "*.jpeg", "*.svg", "*.gif", "*.webp", "*.pdf")  # ojo: aquí NO copiamos notes.pdf
 CODE_EXTS = ("*.py", "*.ipynb", "*.jl", "*.m", "*.r", "*.txt")
+
+
+def format_week_label(week_name: str) -> str:
+    m = re.fullmatch(r"week(\d+)", week_name)
+    if not m:
+        return week_name
+    return f"semana {m.group(1)}"
 
 def run(cmd: list[str], cwd: Path) -> None:
     p = subprocess.run(cmd, cwd=str(cwd))
@@ -37,6 +45,8 @@ def build_week(week: Path) -> None:
         print(f"==> Skipping {week.name} (no Makefile)")
 
 def write_week_page(week: Path, out: Path, assets: list[str], codes: list[str]):
+    week_label = format_week_label(week.name)
+
     def to_items(names: list[str], prefix: str) -> str:
         if not names:
             return "<li>No hay archivos disponibles todavía.</li>"
@@ -47,7 +57,7 @@ def write_week_page(week: Path, out: Path, assets: list[str], codes: list[str]):
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{week.name} · Material del curso</title>
+  <title>{week_label} · Material del curso</title>
   <style>
     body {{ font-family: system-ui, sans-serif; margin: 2rem; max-width: 900px; line-height: 1.5; }}
     h1 {{ margin-bottom: .25rem; }}
@@ -57,7 +67,7 @@ def write_week_page(week: Path, out: Path, assets: list[str], codes: list[str]):
 </head>
 <body>
   <a class="back" href="../../index.html">← Volver al inicio</a>
-  <h1>{week.name}</h1>
+  <h1>{week_label}</h1>
   <p>Recursos de la semana para el curso Modelos Computacionales para la Física y Astronomía.</p>
 
   <section>
@@ -150,12 +160,13 @@ def write_index(pdfs):
 
     items = []
     for week, fname in pdfs:
+        week_label = format_week_label(week)
         links = [f'<a href="weeks/{week}/">contenido</a>', f'<a href="weeks/{week}/codes/">codes/</a>']
         if fname:
             mtime = int((PDF_DIR / fname).stat().st_mtime)
             links.insert(0, f'<a href="pdf/{fname}?v={mtime}" target="_blank">apuntes</a>')
 
-        items.append(f'\n      <li><strong>{week}</strong><span>{" · ".join(links)}</span></li>')
+        items.append(f'\n      <li><strong>{week_label}</strong><span>{" · ".join(links)}</span></li>')
 
     new_list = "".join(items) + "\n    "
     idx.write_text(before + new_list + after, encoding="utf-8")

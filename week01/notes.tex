@@ -1,0 +1,446 @@
+%
+%
+%
+
+%\documentclass[8pt, compress, xcolor=svgnames]{beamer}
+%\
+%\usepackage{multicol}
+%
+%\usepackage{fontspec}
+%
+
+%\pdfpageattr{/Group << /S /Transparency /I true /CS /DeviceRGB>>}
+
+%\usetheme{Warsaw}
+%\usetheme[progressbar=frametitle]{metropolis}
+
+%\mode<presentation>
+
+%\definecolor{UniBlue}{RGB}{83,121,170}
+%\setbeamercolor{title}{bg=UniBlue}
+%\setbeamercolor{title}{fg=White}
+%\setbeamercolor{frametitle}{bg=UniBlue}
+%\setbeamercolor{frametitle}{fg=White}
+%\setbeamercolor{title in head/foot}{bg=UniBlue}
+%\setbeamercolor{institute in head/foot}{bg=UniBlue}
+%\setbeamercolor{subsection in head/foot}{bg=UniBlue}
+
+\documentclass[8pt, xcolor=svgnames]{beamer}
+\usepackage[utf8]{inputenc}
+
+\usetheme[progressbar=frametitle]{metropolis}
+\usepackage{appendixnumberbeamer}
+\usepackage{fancyvrb}
+\usepackage{booktabs}
+\usepackage[scale=2]{ccicons}
+
+\usepackage{minted}
+\usemintedstyle{tango}
+\newminted{python}{linenos=true, bgcolor=LightGray!40}
+
+\usepackage{pgfplots}
+\usepgfplotslibrary{dateplot}
+
+\usepackage{type1cm}
+\usepackage{lettrine}
+
+\usepackage{ragged2e}
+\usepackage{xspace}
+\newcommand{\themename}{\textbf{\textsc{metropolis}}\xspace}
+
+
+\title[Modelos Computacionales]{Modelos Computacionales CFIS261}
+
+\author[Felipe Moreno]{\Large{Felipe Moreno\texttt{<f.morenomuoz@uandresbello.edu>}}}
+%\vspace{15pt}\includegraphics[width=1.5cm]{logo-unab.jpg}}
+\titlegraphic{\hfill\includegraphics[height=2cm]{logo-unab.jpg}}
+
+\date{Sesion 01}
+
+\begin{document}
+%\setsansfont{Fira}
+
+\frame{\titlepage}
+
+%
+%
+%
+\begin{frame}[fragile]
+
+\frametitle{Clase 1, Mapas no lineales}
+
+\begin{itemize}
+\item Cómo graficar con \texttt{matplotlib} (breve repaso)
+\item Dinámica de poblaciones y el mapa logístico
+\item Atractores y caos
+\item Diagrama de bifurcación 
+\end{itemize}
+
+\end{frame}
+
+%
+%
+%
+\begin{frame}[fragile]
+\frametitle{Gráficos de líneas}
+
+\begin{center}
+\includegraphics[scale=0.45]{plot.png}
+\end{center}
+
+\end{frame}
+
+%
+%
+%
+\begin{frame}[fragile]
+\frametitle{Gráficos de líneas (código)}
+
+\begin{pythoncode}
+from math import *
+import matplotlib.pyplot as plt
+import numpy as np
+
+def f(t): return exp(-t/2.0)*cos(15.0*t)
+
+X = np.linspace(2.0, 5.0, 1000)
+Y = [ f(x) for x in X ]
+
+plt.plot(X, Y, 'b-')
+plt.xlabel("$t$")
+plt.ylabel("$f(t)$")
+plt.show()
+\end{pythoncode}
+
+\end{frame}
+
+%
+%
+%
+\begin{frame}[fragile]
+\frametitle{Gráficos de dispersión}
+
+\begin{center}
+\includegraphics[scale=0.45]{scatter.png}
+\end{center}
+
+\end{frame}
+
+%
+%
+%
+\begin{frame}[fragile]
+\frametitle{Gráficos de dispersión (código)}
+
+\begin{pythoncode}
+from math import *
+import matplotlib.pyplot as plt
+from random import random
+
+N, R = 100000, 3.0
+
+def signrandom(): return 2.0*random()-1.0
+
+X = [signrandom()*10.0 for i in range(N)]
+Y = [signrandom()*10.0 for i in range(N)]
+
+Xs, Ys = list(), list()
+for i in range(N):
+    if sqrt(X[i]*X[i]+Y[i]*Y[i]) < R:
+       Xs.append(X[i])
+       Ys.append(Y[i])
+
+plt.scatter(Xs, Ys, s=1)
+plt.xlabel("$x$")
+plt.ylabel("$y$")
+plt.show()
+\end{pythoncode}
+
+\end{frame}
+
+%
+%
+%
+\begin{frame}[fragile]
+\frametitle{Histogramas}
+
+\begin{center}
+\includegraphics[scale=0.45]{histogram.png}
+\end{center}
+
+\end{frame}
+
+%
+%
+%
+\begin{frame}[fragile]
+\frametitle{Histogramas (código)}
+
+\begin{pythoncode}
+import matplotlib.pyplot as plt
+from random import normalvariate
+
+mu, sigma = 5.0, 2.0
+
+X = [normalvariate(mu, sigma) for i in range(50000)]
+
+plt.hist(X, bins=70)
+plt.show()
+\end{pythoncode}
+
+\end{frame}
+
+%
+%
+%
+\begin{frame}[fragile]
+\frametitle{Mapas, atractores y caos}
+
+\begin{itemize}
+\item Dinámica de poblaciones
+\item Mapa logístico
+\item Atractores y caos
+\item Diagramas de bifurcación
+\end{itemize}
+
+\end{frame}
+
+%
+%
+%
+\begin{frame}[fragile]
+
+\frametitle{Dinámica de crecimiento de poblaciones}
+
+Primero supongamos que el número de individuos crece a una tasa proporcional al número actual,
+
+\begin{equation}
+\frac{dN(t)}{dt} = \lambda N(t).
+\end{equation}
+
+La solución es conocida y no de mucho interés,
+
+\begin{equation}
+N(t) = N(0)\exp(\lambda t),
+\end{equation}
+%
+ya que para $\lambda > 0$ produce un crecimiento indefinido. Por supuesto, esto no sucede en 
+la realidad, por lo que para mejorar el modelo haremos que la tasa de crecimiento se sature 
+al llegar a una población máxima $N^*$.
+
+\begin{equation}
+\frac{dN(t)}{dt} = \lambda'(N^*-N(t))N(t).
+\end{equation}
+
+Con este cambio ya tenemos una ecuación no lineal, que manifiesta comportamientos interesantes.
+
+\end{frame}
+
+%
+%
+%
+\begin{frame}[fragile]
+
+\frametitle{Dinámica de crecimiento de poblaciones}
+\framesubtitle{Versión discreta}
+
+Dividiendo el tiempo en pasos finitos (``discretizando''), tenemos que
+
+\begin{equation}
+\frac{dN(t)}{dt} \approx \frac{N(t+\Delta t)-N(t)}{\Delta t},
+\end{equation}
+%
+luego
+
+\begin{equation}
+\frac{N(t+\Delta t)-N(t)}{\Delta t} \approx \lambda'(N^* - N(t))N(t).
+\end{equation}
+
+Llamando $N(t)=N_i$ y $N(t+\Delta t)=N_{i+1}$, podemos escribirlo como una regla de evolución discreta,
+
+\begin{equation}
+N_{i+1} = N_i + \Delta t \lambda'(N^* - N_i)N_i.
+\end{equation}
+
+\end{frame}
+
+%
+%
+%
+\begin{frame}[fragile]
+
+Factorizando $N_i(1+\lambda'\Delta tN^*)$, tenemos
+
+\begin{equation}
+N_{i+1} = N_i(1+\lambda'\Delta tN^*)\left[1-\frac{\lambda'\Delta t}{1+\lambda'\Delta tN^*}N_i\right].
+\end{equation}
+
+Notemos que, si $\lambda'\Delta t N^* \gg 1$, entonces 
+
+\begin{equation}
+\frac{\lambda'\Delta t}{1+\lambda'\Delta tN^*} \approx \frac{1}{N^*}.
+\end{equation} 
+
+Por comodidad definimos nuevas cantidades,
+
+\begin{eqnarray}
+\mu = 1+\lambda'\Delta tN^*, \\
+x_i = \frac{N_i}{N^*},
+\end{eqnarray}
+%
+para que nuestra regla de evolución quede directamente como
+
+\begin{block}{Mapa logístico}
+\begin{equation}
+x_{i+1} = \mu x_i(1-x_i).
+\end{equation}
+\end{block}
+
+\end{frame}
+
+%
+%
+%
+\begin{frame}[fragile]
+\frametitle{Puntos fijos}
+
+Un mapa $x \rightarrow f(x)$ puede bajo ciertas condiciones presentar \textbf{puntos fijos}:
+
+\begin{block}{Punto fijo}
+Valor $x_0$ tal que $f(x_0)=x_0$. Este punto evoluciona sobre sí mismo \\ bajo el mapa $f$.
+\end{block}
+
+En el caso del mapa logístico, los puntos fijos son por supuesto las soluciones de
+
+\begin{equation}
+x_0 = \mu x_0 (1 - x_0)
+\end{equation}
+%
+que son $x_0=0$ (solución trivial) y $x_0=(\mu-1)/\mu$. Esto sin embargo es sólo una solución estable si
+
+\begin{equation}
+\left|\frac{df}{dx}\right|_{x_0}=\mu-2\mu x_0 < 1,
+\end{equation}
+
+En el caso en que $x_0=(\mu-1)/\mu$, la condición implica $\mu < 3$. \\
+
+¿Qué sucede entonces si usamos $\mu \geq 3$? ?`Existe convergencia?
+
+\end{frame}
+
+%
+%
+%
+\begin{frame}[fragile]
+\frametitle{Diversos comportamientos de un mapa no lineal}
+
+\begin{block}{Atractores}
+Es posible que muchas semillas iniciales lleguen al mismo punto fijo. En este caso diremos
+que el punto fijo es un \textbf{atractor}.
+\end{block}
+
+Para un conjunto de parámetros del mapa, es posible 
+
+\begin{itemize}
+\item Tener un único atractor 
+\item Tener dos, tres o un número finito de atractores 
+\item Tener \textbf{caos}, en ese caso el resultado depende tan finamente de la condición inicial que 
+es imposible de preveer (a menos que calculemos la secuencia completa).
+\end{itemize}
+
+\begin{block}{}
+Como veremos, el mapa logístico presenta todos estos comportamientos, dependiendo del valor de $\mu$.
+\end{block}
+
+\end{frame}
+
+%
+%
+%
+\begin{frame}[fragile]
+\frametitle{Un único atractor}
+\framesubtitle{$\mu$=2.8, semilla $x$=0.75}
+
+\begin{center}
+\includegraphics[scale=0.45]{Convergence1.png} 
+\end{center}
+\end{frame}
+
+%
+%
+%
+\begin{frame}[fragile]
+\frametitle{Dos atractores}
+\framesubtitle{$\mu$=3.3, semilla $x$=0.75}
+
+\begin{center}
+\includegraphics[scale=0.45]{Convergence2.png}
+\end{center}
+\end{frame}
+
+%
+%
+%
+\begin{frame}[fragile]
+\frametitle{Cuatro atractores}
+\framesubtitle{$\mu$=3.5, semilla $x$=0.75}
+
+\begin{center}
+\includegraphics[scale=0.45]{Convergence3.png}
+\end{center}
+\end{frame}
+
+%
+%
+%
+\begin{frame}[fragile]
+\frametitle{Región caótica}
+\framesubtitle{$\mu$=3.8, semilla $x$=0.75}
+
+\begin{center}
+\includegraphics[scale=0.45]{Convergence4.png}
+\end{center}
+\end{frame}
+
+%
+%
+%
+\begin{frame}[fragile]
+\frametitle{Doblamiento de período y diagramas de bifurcación}
+
+El mapa logístico llega a su región caótica por medio de un mecanismo conocido como doblamiento 
+de período. El número de atractores se duplica hasta que éstos forman un continuo en la región caótica.
+
+\end{frame}
+
+%
+%
+%
+\begin{frame}[fragile]
+\frametitle{Diagrama de bifurcación}
+\framesubtitle{Mapa logístico}
+
+\includegraphics[scale=0.26]{Bifurcation.png}
+\end{frame}
+
+%
+%
+%
+\begin{frame}[fragile]
+\frametitle{Actividades}
+
+Actividades a realizar:
+
+\begin{enumerate}
+\item[(a)] Encuentre numéricamente el valor de los atractores para el mapa 
+logístico con $\mu=2.6, 3.1, 3.7, 3.8, 3.9, 3.99$. Utilice un set de datos, en cada caso, para determinar si se converge a uno o más atractores en el sistema.
+\item[(b)] Obtenga numéricamente el diagrama de bifurcación para el mapa logístico. 
+Genere un \emph{zoom} para la región $\mu \in [3.4, 4.2]$. Puede elegir un tamaño arbitrario para el eje restante.
+\item[(c)] Genere 100000 muestras del valor final de $x$ para $\mu=3.99$ y obtenga su histograma. 
+¿Se distribuyen uniformemente?, si no es el caso, explique a que distribución se asemeja.
+\end{enumerate}
+
+\end{frame}
+
+\end{document}
+

@@ -10,7 +10,7 @@
 
 \usepackage{minted}
 \usemintedstyle{tango}
-\newminted{python}{linenos=true, bgcolor=LightGray!40}
+\newminted{python}{linenos=true, bgcolor=LightGray!40, fontsize=\small}
 
 \usepackage{pgfplots}
 \usepgfplotslibrary{dateplot}
@@ -21,3 +21,16 @@
 \usepackage{ragged2e}
 \usepackage{xspace}
 \newcommand{\themename}{\textbf{\textsc{metropolis}}\xspace}
+
+% --- Blocks más llamativos (Metropolis) ---
+\setbeamercolor{block title}{fg=White,bg=MidnightBlue}
+\setbeamercolor{block body}{fg=Black,bg=MidnightBlue!6}
+
+\setbeamercolor{block title alerted}{fg=White,bg=Crimson}
+\setbeamercolor{block body alerted}{fg=Black,bg=Crimson!6}
+
+\setbeamercolor{block title example}{fg=White,bg=SeaGreen}
+\setbeamercolor{block body example}{fg=Black,bg=SeaGreen!6}
+
+% Opcional: borde fino alrededor del bloque (más "card-like")
+\setbeamertemplate{blocks}[rounded][shadow=false]

@@ -1,77 +1,67 @@
-%
-%
-%
-
-%\documentclass[8pt, compress, xcolor=svgnames]{beamer}
-%\
-%\usepackage{multicol}
-%
-%\usepackage{fontspec}
-%
-
-%\pdfpageattr{/Group << /S /Transparency /I true /CS /DeviceRGB>>}
-
-%\usetheme{Warsaw}
-%\usetheme[progressbar=frametitle]{metropolis}
-
-%\mode<presentation>
-
-%\definecolor{UniBlue}{RGB}{83,121,170}
-%\setbeamercolor{title}{bg=UniBlue}
-%\setbeamercolor{title}{fg=White}
-%\setbeamercolor{frametitle}{bg=UniBlue}
-%\setbeamercolor{frametitle}{fg=White}
-%\setbeamercolor{title in head/foot}{bg=UniBlue}
-%\setbeamercolor{institute in head/foot}{bg=UniBlue}
-%\setbeamercolor{subsection in head/foot}{bg=UniBlue}
-
 \input{../latex/preamble-beamer.tex}
-
 
 \title[Modelos Computacionales]{Modelos Computacionales CFIS261}
 
 \author[Joaquín Peralta]{\Large{Joaquín Peralta\texttt{<joa.peralta@uandresbello.edu>}}}
-%\vspace{15pt}\includegraphics[width=1.5cm]{logo-unab.jpg}}
 \titlegraphic{\hfill\includegraphics[height=2cm]{logo-unab.jpg}}
 
 \date{Sesion 01}
 
 \begin{document}
-%\setsansfont{Fira}
 
 \frame{\titlepage}
 
-%
-%
-%
-\begin{frame}[fragile]
+%------------------------------------------------
 
-\frametitle{Clase 1, Mapas no lineales}
+\begin{frame}
+\frametitle{Clase 1: Mapas no lineales}
+
+En esta sesión introduciremos uno de los sistemas dinámicos más
+importantes en dinámica no lineal.
+
+\begin{block}{Objetivos}
+\begin{itemize}
+\item Repaso de gráficos con \texttt{matplotlib}
+\item Modelar crecimiento de poblaciones
+\item Introducir el \textbf{mapa logístico}
+\item Comprender \textbf{puntos fijos}
+\item Introducir \textbf{atractores}
+\item Entender el origen del \textbf{caos determinista}
+\item Construir el \textbf{diagrama de bifurcación}
+\end{itemize}
+\end{block}
+
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Gráficos de líneas}
+
+Un gráfico de línea representa una función
+
+\[
+y=f(x)
+\]
+
+evaluada en muchos puntos.
+
+\begin{center}
+\includegraphics[scale=0.2]{plot.png}
+\end{center}
+
+Aplicaciones comunes:
 
 \begin{itemize}
-\item Cómo graficar con \texttt{matplotlib} (breve repaso)
-\item Dinámica de poblaciones y el mapa logístico
-\item Atractores y caos
-\item Diagrama de bifurcación 
+\item evolución temporal
+\item funciones matemáticas
+\item resultados de simulaciones
 \end{itemize}
 
 \end{frame}
 
-%
-%
-%
-\begin{frame}[fragile]
-\frametitle{Gráficos de líneas}
+%------------------------------------------------
 
-\begin{center}
-\includegraphics[scale=0.45]{plot.png}
-\end{center}
-
-\end{frame}
-
-%
-%
-%
 \begin{frame}[fragile]
 \frametitle{Gráficos de líneas (código)}
 
@@ -80,12 +70,13 @@ from math import *
 import matplotlib.pyplot as plt
 import numpy as np
 
-def f(t): return exp(-t/2.0)*cos(15.0*t)
+def f(t):
+    return exp(-t/2.0)*cos(15.0*t)
 
-X = np.linspace(2.0, 5.0, 1000)
-Y = [ f(x) for x in X ]
+X = np.linspace(2.0,5.0,1000)
+Y = [f(x) for x in X]
 
-plt.plot(X, Y, 'b-')
+plt.plot(X,Y,'b-')
 plt.xlabel("$t$")
 plt.ylabel("$f(t)$")
 plt.show()
@@ -93,333 +84,574 @@ plt.show()
 
 \end{frame}
 
-%
-%
-%
-\begin{frame}[fragile]
+%------------------------------------------------
+
+\begin{frame}
 \frametitle{Gráficos de dispersión}
 
+Un gráfico de dispersión representa pares de datos
+
+\[
+(x_i,y_i)
+\]
+
+sin conectar los puntos.
+
 \begin{center}
-\includegraphics[scale=0.45]{scatter.png}
+\includegraphics[scale=0.2]{scatter.png}
 \end{center}
 
-\end{frame}
+Se usa frecuentemente en
 
-%
-%
-%
-\begin{frame}[fragile]
-\frametitle{Gráficos de dispersión (código)}
-
-\begin{pythoncode}
-from math import *
-import matplotlib.pyplot as plt
-from random import random
-
-N, R = 100000, 3.0
-
-def signrandom(): return 2.0*random()-1.0
-
-X = [signrandom()*10.0 for i in range(N)]
-Y = [signrandom()*10.0 for i in range(N)]
-
-Xs, Ys = list(), list()
-for i in range(N):
-    if sqrt(X[i]*X[i]+Y[i]*Y[i]) < R:
-       Xs.append(X[i])
-       Ys.append(Y[i])
-
-plt.scatter(Xs, Ys, s=1)
-plt.xlabel("$x$")
-plt.ylabel("$y$")
-plt.show()
-\end{pythoncode}
+\begin{itemize}
+\item simulaciones Monte Carlo
+\item datos experimentales
+\item distribuciones espaciales
+\end{itemize}
 
 \end{frame}
 
-%
-%
-%
-\begin{frame}[fragile]
+%------------------------------------------------
+
+\begin{frame}
 \frametitle{Histogramas}
 
+Un histograma permite estimar la distribución de probabilidad
+de una variable aleatoria.
+
 \begin{center}
-\includegraphics[scale=0.45]{histogram.png}
+\includegraphics[scale=0.2]{histogram.png}
 \end{center}
+
+Procedimiento:
+
+\begin{enumerate}
+\item generar datos
+\item dividir el eje en intervalos
+\item contar frecuencia de cada intervalo
+\end{enumerate}
 
 \end{frame}
 
-%
-%
-%
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Crecimiento de poblaciones}
+
+Supongamos que una población $N(t)$ crece proporcionalmente
+a su tamaño actual.
+
+\[
+\frac{dN}{dt}=\lambda N
+\]
+
+La solución es
+
+\[
+N(t)=N(0)e^{\lambda t}
+\]
+
+\begin{block}{Problema}
+Para $\lambda>0$ la población crece indefinidamente.
+Esto no es realista debido a recursos limitados.
+\end{block}
+
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Modelo logístico}
+
+Introducimos una población máxima $N^*$.
+
+\[
+\frac{dN}{dt}=\lambda'(N^*-N)N
+\]
+
+Interpretación:
+
+\begin{itemize}
+\item si $N\ll N^*$ crecimiento casi exponencial
+\item si $N\approx N^*$ crecimiento disminuye
+\item si $N>N^*$ población decrece
+\end{itemize}
+
+Este es un modelo \textbf{no lineal}.
+
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Discretización}
+
+Aproximamos la derivada
+
+\[
+\frac{dN}{dt}\approx
+\frac{N(t+\Delta t)-N(t)}{\Delta t}
+\]
+
+Entonces
+
+\[
+N(t+\Delta t)=N(t)+\lambda'\Delta t(N^*-N(t))N(t)
+\]
+
+Definimos
+
+\[
+N_i=N(t)
+\qquad
+N_{i+1}=N(t+\Delta t)
+\]
+
+\[
+N_{i+1}=N_i+\lambda'\Delta t(N^*-N_i)N_i
+\]
+
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Mapa logístico}
+
+Definimos
+
+\[
+x_i=\frac{N_i}{N^*}
+\]
+
+y
+
+\[
+\mu=1+\lambda'\Delta t N^*
+\]
+
+Obtenemos
+
+\begin{block}{Mapa logístico}
+
+\[
+x_{i+1}=\mu x_i(1-x_i)
+\]
+
+\end{block}
+
+Este mapa simple produce dinámica muy compleja.
+
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Puntos fijos}
+
+Un punto fijo satisface
+
+\[
+f(x_0)=x_0
+\]
+
+Para el mapa logístico
+
+\[
+x_{i+1}=\mu x_i(1-x_i)
+\]
+
+tenemos dos puntos fijos:
+
+\[
+x_0=0
+\]
+
+\[
+x_0=\frac{\mu-1}{\mu}
+\]
+
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}
+\footnotesize
+\frametitle{Estabilidad de un punto fijo}
+
+Sea un mapa iterativo
+
+\[
+x_{n+1}=f(x_n)
+\]
+
+Un punto fijo satisface
+
+\[
+f(x_0)=x_0
+\]
+
+Para estudiar su estabilidad, perturbamos ligeramente el sistema:
+
+\[
+x_n = x_0 + \epsilon_n
+\]
+
+donde $\epsilon_n$ es una perturbación pequeña.
+
+\vspace{4mm}
+
+La evolución es
+
+\[
+x_{n+1}=f(x_0+\epsilon_n)
+\]
+
+Expandiendo en serie de Taylor alrededor de $x_0$:
+
+\[
+f(x_0+\epsilon_n)
+\approx
+f(x_0)+f'(x_0)\epsilon_n
+\]
+
+Como $f(x_0)=x_0$, obtenemos
+
+\[
+x_{n+1}=x_0+f'(x_0)\epsilon_n
+\]
+
+\end{frame}
+
+
+
+\begin{frame}
+\frametitle{Condición de estabilidad}
+
+Restando $x_0$ en ambos lados:
+
+\[
+\epsilon_{n+1}=f'(x_0)\epsilon_n
+\]
+
+Luego
+
+\[
+\epsilon_n = (f'(x_0))^n \epsilon_0
+\]
+
+Esto implica:
+
+\begin{itemize}
+\item Si $|f'(x_0)|<1$ las perturbaciones disminuyen
+\item Si $|f'(x_0)|>1$ las perturbaciones crecen
+\end{itemize}
+
+\begin{block}{Condición de estabilidad}
+
+\[
+|f'(x_0)| < 1
+\]
+
+\end{block}
+
+En ese caso el punto fijo es un \textbf{atractor}.
+
+\end{frame}
+
+
+
+\begin{frame}
+\frametitle{Estabilidad del mapa logístico}
+
+El mapa logístico es
+
+\[
+x_{n+1}=\mu x_n(1-x_n)
+\]
+
+La derivada es
+
+\[
+f'(x)=\mu(1-2x)
+\]
+
+Uno de los puntos fijos es
+
+\[
+x_0=\frac{\mu-1}{\mu}
+\]
+
+Evaluando la derivada:
+
+\[
+f'(x_0)=\mu\left(1-2\frac{\mu-1}{\mu}\right)
+\]
+
+\[
+f'(x_0)=\mu(1-2+2/\mu)
+\]
+
+\[
+f'(x_0)=2-\mu
+\]
+
+\end{frame}
+
+
+\begin{frame}
+\footnotesize
+\frametitle{Condición de estabilidad}
+
+Recordemos que la condición es
+
+\[
+|f'(x_0)|<1
+\]
+
+Como
+
+\[
+f'(x_0)=2-\mu
+\]
+
+entonces
+
+\[
+|2-\mu|<1
+\]
+
+Esto implica
+
+\[
+1<\mu<3
+\]
+
+\begin{block}{Resultado}
+
+Para
+
+\[
+\mu<3
+\]
+
+el punto fijo es estable.
+
+Para
+
+\[
+\mu>3
+\]
+
+aparecen oscilaciones de período 2.
+
+\end{block}
+
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Cobweb diagram}
+
+Para visualizar iteraciones del mapa se usa
+un \textbf{diagrama de telaraña}.
+
+Procedimiento:
+
+\begin{enumerate}
+\item graficar $y=f(x)$
+\item graficar $y=x$
+\item iterar gráficamente
+\end{enumerate}
+
+Esto permite observar
+
+\begin{itemize}
+\item convergencia
+\item ciclos
+\item caos
+\end{itemize}
+
+\end{frame}
+
+%------------------------------------------------
+
 \begin{frame}[fragile]
-\frametitle{Histogramas (código)}
+\frametitle{Cobweb (código Python)}
 
 \begin{pythoncode}
+import numpy as np
 import matplotlib.pyplot as plt
-from random import normalvariate
 
-mu, sigma = 5.0, 2.0
+mu = 3.2
 
-X = [normalvariate(mu, sigma) for i in range(50000)]
+def f(x):
+    return mu*x*(1-x)
 
-plt.hist(X, bins=70)
+x = np.linspace(0,1,500)
+
+plt.plot(x,f(x))
+plt.plot(x,x)
+
+xn = 0.2
+
+for i in range(50):
+
+    xnext = f(xn)
+
+    plt.plot([xn,xn],[xn,xnext],'r')
+    plt.plot([xn,xnext],[xnext,xnext],'r')
+
+    xn = xnext
+
 plt.show()
 \end{pythoncode}
 
 \end{frame}
 
-%
-%
-%
-\begin{frame}[fragile]
-\frametitle{Mapas, atractores y caos}
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Atractores}
+
+Un atractor es un estado hacia el cual
+evolucionan muchas condiciones iniciales.
+
+Dependiendo de $\mu$ podemos tener
 
 \begin{itemize}
-\item Dinámica de poblaciones
-\item Mapa logístico
-\item Atractores y caos
-\item Diagramas de bifurcación
+\item punto fijo
+\item ciclo de período 2
+\item ciclo de período 4
+\item caos
 \end{itemize}
 
 \end{frame}
 
-%
-%
-%
-\begin{frame}[fragile]
+%------------------------------------------------
 
-\frametitle{Dinámica de crecimiento de poblaciones}
+\begin{frame}
+\frametitle{Ejemplos}
 
-Primero supongamos que el número de individuos crece a una tasa proporcional al número actual,
-
-\begin{equation}
-\frac{dN(t)}{dt} = \lambda N(t).
-\end{equation}
-
-La solución es conocida y no de mucho interés,
-
-\begin{equation}
-N(t) = N(0)\exp(\lambda t),
-\end{equation}
-%
-ya que para $\lambda > 0$ produce un crecimiento indefinido. Por supuesto, esto no sucede en 
-la realidad, por lo que para mejorar el modelo haremos que la tasa de crecimiento se sature 
-al llegar a una población máxima $N^*$.
-
-\begin{equation}
-\frac{dN(t)}{dt} = \lambda'(N^*-N(t))N(t).
-\end{equation}
-
-Con este cambio ya tenemos una ecuación no lineal, que manifiesta comportamientos interesantes.
+\begin{center}
+\includegraphics[scale=0.45]{Convergence1.png}
+\end{center}
 
 \end{frame}
 
-%
-%
-%
-\begin{frame}[fragile]
+%------------------------------------------------
 
-\frametitle{Dinámica de crecimiento de poblaciones}
-\framesubtitle{Versión discreta}
+\begin{frame}
+\frametitle{Doblamiento de período}
 
-Dividiendo el tiempo en pasos finitos (``discretizando''), tenemos que
-
-\begin{equation}
-\frac{dN(t)}{dt} \approx \frac{N(t+\Delta t)-N(t)}{\Delta t},
-\end{equation}
-%
-luego
-
-\begin{equation}
-\frac{N(t+\Delta t)-N(t)}{\Delta t} \approx \lambda'(N^* - N(t))N(t).
-\end{equation}
-
-Llamando $N(t)=N_i$ y $N(t+\Delta t)=N_{i+1}$, podemos escribirlo como una regla de evolución discreta,
-
-\begin{equation}
-N_{i+1} = N_i + \Delta t \lambda'(N^* - N_i)N_i.
-\end{equation}
-
-\end{frame}
-
-%
-%
-%
-\begin{frame}[fragile]
-
-Factorizando $N_i(1+\lambda'\Delta tN^*)$, tenemos
-
-\begin{equation}
-N_{i+1} = N_i(1+\lambda'\Delta tN^*)\left[1-\frac{\lambda'\Delta t}{1+\lambda'\Delta tN^*}N_i\right].
-\end{equation}
-
-Notemos que, si $\lambda'\Delta t N^* \gg 1$, entonces 
-
-\begin{equation}
-\frac{\lambda'\Delta t}{1+\lambda'\Delta tN^*} \approx \frac{1}{N^*}.
-\end{equation} 
-
-Por comodidad definimos nuevas cantidades,
-
-\begin{eqnarray}
-\mu = 1+\lambda'\Delta tN^*, \\
-x_i = \frac{N_i}{N^*},
-\end{eqnarray}
-%
-para que nuestra regla de evolución quede directamente como
-
-\begin{block}{Mapa logístico}
-\begin{equation}
-x_{i+1} = \mu x_i(1-x_i).
-\end{equation}
-\end{block}
-
-\end{frame}
-
-%
-%
-%
-\begin{frame}[fragile]
-\frametitle{Puntos fijos}
-
-Un mapa $x \rightarrow f(x)$ puede bajo ciertas condiciones presentar \textbf{puntos fijos}:
-
-\begin{block}{Punto fijo}
-Valor $x_0$ tal que $f(x_0)=x_0$. Este punto evoluciona sobre sí mismo \\ bajo el mapa $f$.
-\end{block}
-
-En el caso del mapa logístico, los puntos fijos son por supuesto las soluciones de
-
-\begin{equation}
-x_0 = \mu x_0 (1 - x_0)
-\end{equation}
-%
-que son $x_0=0$ (solución trivial) y $x_0=(\mu-1)/\mu$. Esto sin embargo es sólo una solución estable si
-
-\begin{equation}
-\left|\frac{df}{dx}\right|_{x_0}=\mu-2\mu x_0 < 1,
-\end{equation}
-
-En el caso en que $x_0=(\mu-1)/\mu$, la condición implica $\mu < 3$. \\
-
-¿Qué sucede entonces si usamos $\mu \geq 3$? ?`Existe convergencia?
-
-\end{frame}
-
-%
-%
-%
-\begin{frame}[fragile]
-\frametitle{Diversos comportamientos de un mapa no lineal}
-
-\begin{block}{Atractores}
-Es posible que muchas semillas iniciales lleguen al mismo punto fijo. En este caso diremos
-que el punto fijo es un \textbf{atractor}.
-\end{block}
-
-Para un conjunto de parámetros del mapa, es posible 
+Al aumentar $\mu$ ocurre
 
 \begin{itemize}
-\item Tener un único atractor 
-\item Tener dos, tres o un número finito de atractores 
-\item Tener \textbf{caos}, en ese caso el resultado depende tan finamente de la condición inicial que 
-es imposible de preveer (a menos que calculemos la secuencia completa).
+\item punto fijo
+\item período 2
+\item período 4
+\item período 8
+\item caos
 \end{itemize}
 
-\begin{block}{}
-Como veremos, el mapa logístico presenta todos estos comportamientos, dependiendo del valor de $\mu$.
-\end{block}
+Este mecanismo se llama
+
+\textbf{doblamiento de período}.
 
 \end{frame}
 
-%
-%
-%
-\begin{frame}[fragile]
-\frametitle{Un único atractor}
-\framesubtitle{$\mu$=2.8, semilla $x$=0.75}
+%------------------------------------------------
 
-\begin{center}
-\includegraphics[scale=0.45]{Convergence1.png} 
-\end{center}
-\end{frame}
-
-%
-%
-%
-\begin{frame}[fragile]
-\frametitle{Dos atractores}
-\framesubtitle{$\mu$=3.3, semilla $x$=0.75}
-
-\begin{center}
-\includegraphics[scale=0.45]{Convergence2.png}
-\end{center}
-\end{frame}
-
-%
-%
-%
-\begin{frame}[fragile]
-\frametitle{Cuatro atractores}
-\framesubtitle{$\mu$=3.5, semilla $x$=0.75}
-
-\begin{center}
-\includegraphics[scale=0.45]{Convergence3.png}
-\end{center}
-\end{frame}
-
-%
-%
-%
-\begin{frame}[fragile]
-\frametitle{Región caótica}
-\framesubtitle{$\mu$=3.8, semilla $x$=0.75}
-
-\begin{center}
-\includegraphics[scale=0.45]{Convergence4.png}
-\end{center}
-\end{frame}
-
-%
-%
-%
-\begin{frame}[fragile]
-\frametitle{Doblamiento de período y diagramas de bifurcación}
-
-El mapa logístico llega a su región caótica por medio de un mecanismo conocido como doblamiento 
-de período. El número de atractores se duplica hasta que éstos forman un continuo en la región caótica.
-
-\end{frame}
-
-%
-%
-%
-\begin{frame}[fragile]
+\begin{frame}
 \frametitle{Diagrama de bifurcación}
-\framesubtitle{Mapa logístico}
 
+\begin{center}
 \includegraphics[scale=0.26]{Bifurcation.png}
+\end{center}
+
+Cada punto representa un estado estable
+para un valor de $\mu$.
+
 \end{frame}
 
-%
-%
-%
+%------------------------------------------------
+
 \begin{frame}[fragile]
+\frametitle{Bifurcation diagram (código)}
+
+\begin{pythoncode}
+import numpy as np
+import matplotlib.pyplot as plt
+
+n = 1000
+mu_values = np.linspace(2.5,4,n)
+
+iterations = 1000
+last = 100
+
+for mu in mu_values:
+
+    x = 0.5
+
+    for i in range(iterations):
+        x = mu*x*(1-x)
+
+        if i >= iterations-last:
+            plt.plot(mu,x,'k.',markersize=1)
+
+plt.xlabel("$\mu$")
+plt.ylabel("$x$")
+plt.show()
+\end{pythoncode}
+
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Exponente de Lyapunov}
+
+Mide la sensibilidad a condiciones iniciales.
+
+\[
+\lambda =
+\lim_{n\to\infty}
+\frac{1}{n}
+\sum_{i=0}^{n-1}
+\ln |f'(x_i)|
+\]
+
+Interpretación:
+
+\begin{itemize}
+\item $\lambda<0$ sistema estable
+\item $\lambda=0$ transición
+\item $\lambda>0$ caos
+\end{itemize}
+
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}
 \frametitle{Actividades}
 
-Actividades a realizar:
-
 \begin{enumerate}
-\item[(a)] Encuentre numéricamente el valor de los atractores para el mapa 
-logístico con $\mu=2.6, 3.1, 3.7, 3.8, 3.9, 3.99$. Utilice un set de datos, en cada caso, para determinar si se converge a uno o más atractores en el sistema.
-\item[(b)] Obtenga numéricamente el diagrama de bifurcación para el mapa logístico. 
-Genere un \emph{zoom} para la región $\mu \in [3.4, 4.2]$. Puede elegir un tamaño arbitrario para el eje restante.
-\item[(c)] Genere 100000 muestras del valor final de $x$ para $\mu=3.99$ y obtenga su histograma. 
-¿Se distribuyen uniformemente?, si no es el caso, explique a que distribución se asemeja.
+
+\item Simule el mapa logístico para
+
+\[
+\mu=2.6,3.1,3.7,3.8,3.9,3.99
+\]
+
+\item Construya el diagrama de bifurcación.
+
+\item Para $\mu=3.99$ genere $100000$ iteraciones
+y calcule el histograma de $x$.
+
 \end{enumerate}
 
 \end{frame}
 
 \end{document}
-

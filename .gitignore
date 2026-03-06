@@ -10,6 +10,8 @@ _public/
 *.snm
 *.vrb
 *.fls
+*.bbl
+*.blg
 *.fdb_latexmk
 *.synctex.gz
 

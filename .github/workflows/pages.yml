@@ -35,7 +35,8 @@ jobs:
           texlive-latex-extra \
           texlive-fonts-recommended \
           texlive-fonts-extra \
-          texlive-lang-spanish
+          texlive-lang-spanish \
+          texlive-science
 
       - name: Install python dependencies
         run: |

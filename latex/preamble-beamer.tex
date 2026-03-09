@@ -1,36 +1,30 @@
 % Preambulo compartido para clases en formato beamer
-\documentclass[8pt, xcolor=svgnames]{beamer}
+\documentclass[9pt, xcolor=svgnames]{beamer}
 \usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-nodecimaldot]{babel}
 
 \usetheme[progressbar=frametitle]{metropolis}
+\metroset{sectionpage=none, subsectionpage=none}
 \usepackage{appendixnumberbeamer}
-\usepackage{fancyvrb}
 \usepackage{booktabs}
-\usepackage[scale=2]{ccicons}
-
+\usepackage{amsmath,amssymb,bm,mathtools}
+\usepackage{physics}
+\usepackage{graphicx}
+\usepackage{multicol}
+\usepackage{tikz}
 \usepackage{minted}
 \usemintedstyle{tango}
-\newminted{python}{linenos=true, bgcolor=LightGray!40, fontsize=\small}
-
+\setminted{fontsize=\scriptsize, breaklines=true, linenos=true, bgcolor=LightGray!20, frame=lines}
+\newminted{python}{fontsize=\scriptsize, breaklines=true, linenos=true, bgcolor=LightGray!20, frame=lines}
 \usepackage{pgfplots}
-\usepgfplotslibrary{dateplot}
-
-\usepackage{type1cm}
-\usepackage{lettrine}
-
+\pgfplotsset{compat=1.18}
 \usepackage{ragged2e}
 \usepackage{xspace}
 \newcommand{\themename}{\textbf{\textsc{metropolis}}\xspace}
 
-% --- Blocks más llamativos (Metropolis) ---
-\setbeamercolor{block title}{fg=White,bg=MidnightBlue}
-\setbeamercolor{block body}{fg=Black,bg=MidnightBlue!6}
-
-\setbeamercolor{block title alerted}{fg=White,bg=Crimson}
-\setbeamercolor{block body alerted}{fg=Black,bg=Crimson!6}
-
-\setbeamercolor{block title example}{fg=White,bg=SeaGreen}
-\setbeamercolor{block body example}{fg=Black,bg=SeaGreen!6}
-
-% Opcional: borde fino alrededor del bloque (más "card-like")
-\setbeamertemplate{blocks}[rounded][shadow=false]
+\setbeamercolor{block title}{bg=MidnightBlue!85, fg=white}
+\setbeamercolor{block body}{bg=MidnightBlue!5, fg=black}
+\setbeamercolor{alerted text}{fg=Crimson}
+\setbeamercolor{frametitle}{bg=MidnightBlue!10, fg=black}
+\setbeamertemplate{blocks}[rounded][shadow=true]

@@ -203,7 +203,21 @@ En el computador no calculamos el límite exacto: usamos un número grande de it
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Entropía de Shannon}
+\begin{frame}{Entropía de Shannon: idea de fondo}
+La entropía de Shannon mide cuán \textbf{repartida} o \textbf{incierta} está una distribución de probabilidad.
+
+\begin{itemize}
+    \item Si casi toda la probabilidad está en un solo estado, el sistema es más predecible y la entropía es baja.
+    \item Si la probabilidad se distribuye entre muchos estados comparables, hay mayor incertidumbre y la entropía aumenta.
+    \item No mide ``desorden'' en un sentido moral o visual: mide cuánta información falta antes de saber en qué estado está el sistema.
+\end{itemize}
+
+\begin{block}{Lectura física/computacional}
+En esta semana la usaremos para resumir qué tan dispersos están los datos generados por una dinámica: una trayectoria concentrada en pocos valores produce menor entropía que una que visita muchas regiones del espacio de estados.
+\end{block}
+\end{frame}
+
+\begin{frame}{Entropía de Shannon: fórmula y estimación}
 Para una distribución discreta $\{p_i\}_{i=1}^N$,
 \begin{equation*}
     S = -\sum_{i=1}^{N} p_i \ln p_i,
@@ -212,25 +226,18 @@ Para una distribución discreta $\{p_i\}_{i=1}^N$,
 \end{equation*}
 
 \begin{itemize}
-    \item Si la probabilidad está muy concentrada en pocos estados, $S$ es menor.
-    \item Si la distribución es más uniforme, $S$ aumenta.
-    \item El valor máximo ocurre cuando $p_i=1/N$ para todo $i$, y entonces $S_{\max}=\ln N$.
+    \item Si $p_i=1/N$ para todo $i$, la distribución es uniforme y $S$ alcanza su valor máximo: $S_{\max}=\ln N$.
+    \item Si algunos bins dominan y muchos tienen probabilidad casi nula, $S$ disminuye.
 \end{itemize}
-\end{frame}
 
-\begin{frame}{Entropía estimada desde datos}
-En una simulación, muchas veces no conocemos la distribución exacta. En su lugar:
+\vspace{0.15cm}
+En simulaciones, normalmente no conocemos los $p_i$ exactos:
 \begin{enumerate}
     \item generamos una muestra de datos $x_1,\dots,x_M$;
-    \item dividimos el intervalo de interés en $N$ bins;
-    \item contamos cuántos datos caen en cada bin;
-    \item normalizamos para obtener una aproximación $p_i$;
+    \item dividimos el rango en bins;
+    \item contamos frecuencias y las normalizamos para estimar $p_i$;
     \item calculamos $S = -\sum_i p_i \ln p_i$.
 \end{enumerate}
-
-\begin{block}{Idea práctica}
-La elección del número de bins influye en el valor numérico de la entropía estimada. Esto permite discutir discretización, resolución y sesgo estadístico.
-\end{block}
 \end{frame}
 
 \begin{frame}{Comparación visual de histogramas}

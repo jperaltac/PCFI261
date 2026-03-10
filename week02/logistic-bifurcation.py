@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import matplotlib.pyplot as plt
 from numpy import linspace
 from random import choice, random
@@ -21,4 +19,3 @@ plt.xlim(1.0, 4.0)
 plt.xlabel("$\mu$")
 plt.ylabel("$x^*$")
 plt.show()
-

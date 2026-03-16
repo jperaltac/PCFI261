@@ -71,14 +71,15 @@ def write_week_page(week: Path, out: Path, assets: list[str], codes: list[str]):
   <p>Recursos de la semana para el curso Modelos Computacionales para la Física y Astronomía.</p>
 
   <section>
-    <h2>Contenido</h2>
+    <h2>Imágenes de la presentación</h2>
     <ul>
       {to_items(assets, 'assets')}
     </ul>
   </section>
 
   <section>
-    <h2>codes/</h2>
+    <h2>Códigos adicionales</h2>
+    <p>Archivos de apoyo para la semana (incluye <code>.py</code>, <code>.ipynb</code> y otros formatos de código).</p>
     <ul>
       {to_items(codes, 'codes')}
     </ul>
@@ -161,7 +162,7 @@ def write_index(pdfs):
     items = []
     for week, fname in pdfs:
         week_label = format_week_label(week)
-        links = [f'<a href="weeks/{week}/">contenido</a>', f'<a href="weeks/{week}/codes/">codes/</a>']
+        links = [f'<a href="weeks/{week}/">contenido</a>']
         if fname:
             mtime = int((PDF_DIR / fname).stat().st_mtime)
             links.insert(0, f'<a href="pdf/{fname}?v={mtime}" target="_blank">apuntes</a>')

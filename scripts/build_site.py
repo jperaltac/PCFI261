@@ -5,6 +5,7 @@ import shutil
 import subprocess
 import re
 from pathlib import Path
+from html import escape
 
 REPO = Path(__file__).resolve().parents[1]
 SITE_SRC = REPO / "site"
@@ -13,7 +14,7 @@ PDF_DIR = PUBLIC / "pdf"
 WEEKS_DIR = PUBLIC / "weeks"
 
 ASSET_EXTS = ("*.png", "*.jpg", "*.jpeg", "*.svg", "*.gif", "*.webp", "*.pdf")  # ojo: aquí NO copiamos notes.pdf
-CODE_EXTS = ("*.py", "*.ipynb", "*.jl", "*.m", "*.r", "*.txt")
+CODE_EXTS = ("*.py", "*.ipynb", "*.jl", "*.m", "*.r", "*.txt", "*.pdf")
 
 
 def format_week_label(week_name: str) -> str:
@@ -44,13 +45,37 @@ def build_week(week: Path) -> None:
     else:
         print(f"==> Skipping {week.name} (no Makefile)")
 
-def write_week_page(week: Path, out: Path, assets: list[str], codes: list[str]):
+def read_links_file(week: Path) -> list[str]:
+    links_file = week / "codes" / "links.txt"
+    if not links_file.exists():
+        return []
+    links: list[str] = []
+    for line in links_file.read_text(encoding="utf-8").splitlines():
+        link = line.strip()
+        if not link or link.startswith("#"):
+            continue
+        links.append(link)
+    return links
+
+
+def write_week_page(week: Path, out: Path, assets: list[str], codes: list[str], links: list[str]):
     week_label = format_week_label(week.name)
 
     def to_items(names: list[str], prefix: str) -> str:
         if not names:
             return "<li>No hay archivos disponibles todavía.</li>"
         return "\n".join([f'<li><a href="{prefix}/{name}">{name}</a></li>' for name in names])
+
+    links_items = (
+        "<li>No hay enlaces disponibles todavía.</li>"
+        if not links
+        else "\n".join(
+            [
+                f'<li><a href="{escape(link, quote=True)}" target="_blank" rel="noopener noreferrer">{escape(link)}</a></li>'
+                for link in links
+            ]
+        )
+    )
 
     html = f"""<!doctype html>
 <html lang="es">
@@ -78,10 +103,18 @@ def write_week_page(week: Path, out: Path, assets: list[str], codes: list[str]):
   </section>
 
   <section>
-    <h2>Códigos adicionales</h2>
-    <p>Archivos de apoyo para la semana (incluye <code>.py</code>, <code>.ipynb</code> y otros formatos de código).</p>
+    <h2>Códigos y documentos adicionales</h2>
+    <p>Archivos de apoyo para la semana (incluye <code>.py</code>, <code>.ipynb</code>, <code>.pdf</code> y otros formatos de código/documentos).</p>
     <ul>
       {to_items(codes, 'codes')}
+    </ul>
+  </section>
+
+  <section>
+    <h2>Links recomendados</h2>
+    <p>Si existe un archivo <code>links.txt</code>, sus enlaces se publican aquí automáticamente.</p>
+    <ul>
+      {links_items}
     </ul>
   </section>
 </body>
@@ -115,7 +148,8 @@ def publish_week_assets(week: Path):
             shutil.copy2(f, codes_dir / f.name)
             published_codes.append(f.name)
 
-    write_week_page(week, out, sorted(published_assets), sorted(published_codes))
+    links = read_links_file(week)
+    write_week_page(week, out, sorted(published_assets), sorted(published_codes), links)
 
     # (Opcional) publicar scripts
     # for ext in CODE_EXTS:

@@ -30,6 +30,7 @@ footer {
 .hero {
   position: relative;
   padding: 4rem 0 2rem;
+  overflow: visible;
 }
 
 .hero-figure {
@@ -39,10 +40,42 @@ footer {
   width: clamp(72px, 12vw, 120px);
   aspect-ratio: 1;
   border-radius: 24px;
-  background: linear-gradient(145deg, rgba(79, 179, 255, .88), rgba(141, 125, 255, .8));
+  background:
+    radial-gradient(circle at 30% 28%, rgba(255, 255, 255, .32), transparent 24%),
+    linear-gradient(145deg, rgba(79, 179, 255, .42), rgba(141, 125, 255, .28));
   clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
-  opacity: .9;
-  box-shadow: 0 12px 26px rgba(0, 0, 0, .35);
+  opacity: .62;
+  box-shadow:
+    0 14px 30px rgba(0, 0, 0, .22),
+    0 0 40px rgba(79, 179, 255, .16);
+}
+
+.hero-figure::before,
+.hero-figure::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 24px;
+  clip-path: inherit;
+}
+
+.hero-figure::before {
+  inset: -10%;
+  background: radial-gradient(circle, rgba(79, 179, 255, .18), transparent 68%);
+  filter: blur(10px);
+  opacity: .8;
+}
+
+.hero-figure::after {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .26), transparent 34%),
+    repeating-linear-gradient(
+      135deg,
+      rgba(255, 255, 255, .08) 0 6px,
+      transparent 6px 12px
+    );
+  mix-blend-mode: screen;
+  opacity: .65;
 }
 
 .eyebrow {

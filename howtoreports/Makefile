@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 DOCUMENT := notes
 LATEXMK := latexmk
-LATEXMKOPTS := -pdf -halt-on-error -file-line-error -interaction=nonstopmode
+LATEXMKOPTS := -pdf -halt-on-error -file-line-error -interaction=nonstopmode -shell-escape
 
 all: $(DOCUMENT).pdf
 

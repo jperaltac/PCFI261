@@ -1,22 +1,9 @@
-\documentclass[aspectratio=169,11pt]{beamer}
+\input{../latex/preamble-beamer.tex}
 
-\usepackage[utf8]{inputenc}
-\usepackage[T1]{fontenc}
-\usepackage[spanish,es-nodecimaldot]{babel}
-\usepackage{lmodern}
-\usepackage{amsmath,amssymb,bm}
-\usepackage{booktabs,array,multirow}
-\usepackage{graphicx}
+\usepackage{array,multirow}
 \usepackage{tikz}
 \usetikzlibrary{positioning}
 \usepackage{listings}
-\usepackage{xcolor}
-\usepackage{hyperref}
-
-\usetheme{Madrid}
-\usecolortheme{default}
-\setbeamertemplate{navigation symbols}{}
-\setbeamertemplate{footline}[frame number]
 
 \definecolor{MainBlue}{RGB}{26,74,122}
 \definecolor{SoftBlue}{RGB}{230,240,250}
@@ -24,12 +11,11 @@
 \definecolor{DeepRed}{RGB}{154,42,42}
 \definecolor{DarkGreen}{RGB}{34,102,68}
 
-\setbeamercolor{title}{fg=MainBlue}
-\setbeamercolor{frametitle}{fg=white,bg=MainBlue}
 \setbeamercolor{structure}{fg=MainBlue}
 \setbeamercolor{block title}{bg=MainBlue!12, fg=black}
 \setbeamercolor{block body}{bg=SoftGray, fg=black}
 \setbeamercolor{alerted text}{fg=DeepRed}
+\setbeamercolor{frametitle}{fg=white,bg=MainBlue}
 
 \graphicspath{{figures/}}
 
@@ -43,27 +29,18 @@
   backgroundcolor=\color{SoftGray},
   breaklines=true,
   columns=fullflexible
-}
+} 
 
-\title{C\'omo escribir el informe del curso}
+\title[PCFI261 -- C\'omo hacer reportes]{Modelos Computacionales PCFI261\\C\'omo escribir el informe del curso}
 \subtitle{Gu\'ia para informes manuscritos}
-\author{Modelos Computacionales para F\'isica y Astronom\'ia}
+\author[PCFI261]{Modelos Computacionales para F\'isica y Astronom\'ia}
+\institute{Universidad Andr\'es Bello}
+\titlegraphic{\hfill\includegraphics[height=1.8cm]{../week01/logo-unab.jpg}}
 \date{\today}
 
 \begin{document}
 
-\begin{frame}[plain]
-\vfill
-\centering
-{\color{MainBlue}\Huge\bfseries C\'omo escribir el informe del curso\par}
-\vspace{0.35cm}
-{\Large Gu\'ia para informes manuscritos\par}
-\vspace{0.6cm}
-{\large Modelos Computacionales para F\'isica y Astronom\'ia\par}
-\vspace{0.2cm}
-{\normalsize \today\par}
-\vfill
-\end{frame}
+\frame{\titlepage}
 
 \begin{frame}
 \frametitle{Objetivo de la clase}

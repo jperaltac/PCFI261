@@ -12,6 +12,9 @@ SITE_SRC = REPO / "site"
 PUBLIC = REPO / "_public"
 PDF_DIR = PUBLIC / "pdf"
 WEEKS_DIR = PUBLIC / "weeks"
+REPORTS = [
+    ("howtoreports", "Cómo hacer reportes"),
+]
 
 ASSET_EXTS = ("*.png", "*.jpg", "*.jpeg", "*.svg", "*.gif", "*.webp", "*.pdf")  # ojo: aquí NO copiamos notes.pdf
 CODE_EXTS = ("*.py", "*.ipynb", "*.jl", "*.m", "*.r", "*.txt", "*.pdf")
@@ -181,6 +184,37 @@ def collect_pdfs():
 
     return items
 
+def collect_reports():
+    PDF_DIR.mkdir(parents=True, exist_ok=True)
+    items: list[tuple[str, str, str | None]] = []
+
+    for folder, label in REPORTS:
+        report_dir = REPO / folder
+        if not report_dir.exists():
+            print(f"!! Report folder not found: {report_dir}")
+            items.append((folder, label, None))
+            continue
+
+        mk = report_dir / "Makefile"
+        if mk.exists():
+            print(f"==> Building {folder} (make)")
+            run(["make"], cwd=report_dir)
+        else:
+            print(f"==> Skipping {folder} (no Makefile)")
+
+        pdf = report_dir / "notes.pdf"
+        if pdf.exists():
+            target = PDF_DIR / f"{folder}.pdf"
+            shutil.copy2(pdf, target)
+            pdf_name = target.name
+        else:
+            print(f"!! No PDF found for report {folder}: expected {pdf}")
+            pdf_name = None
+
+        items.append((folder, label, pdf_name))
+
+    return items
+
 def write_index(pdfs):
     idx = PUBLIC / "index.html"
     html = idx.read_text(encoding="utf-8")
@@ -204,7 +238,31 @@ def write_index(pdfs):
         items.append(f'\n      <li><strong>{week_label}</strong><span>{" · ".join(links)}</span></li>')
 
     new_list = "".join(items) + "\n    "
-    idx.write_text(before + new_list + after, encoding="utf-8")
+    html = before + new_list + after
+
+    reports_marker = '<ul id="reports">'
+    reports_start = html.find(reports_marker)
+    if reports_start == -1:
+        raise RuntimeError('No encuentro <ul id="reports"> en site/index.html')
+
+    reports_before = html[: reports_start + len(reports_marker)]
+    reports_after = html[html.find("</ul>", reports_start):]
+
+    reports_list = []
+    for report_folder, report_label, report_fname in collect_reports():
+        if report_fname:
+            mtime = int((PDF_DIR / report_fname).stat().st_mtime)
+            report_link = f'pdf/{report_fname}?v={mtime}'
+            reports_list.append(
+                f'\n      <li><strong>{escape(report_label)}</strong><span><a href="{report_link}" target="_blank">ver PDF</a></span></li>'
+            )
+        else:
+            reports_list.append(
+                f'\n      <li><strong>{escape(report_label)}</strong><span>PDF no disponible</span></li>'
+            )
+
+    reports_html = "".join(reports_list) + "\n    "
+    idx.write_text(reports_before + reports_html + reports_after, encoding="utf-8")
 
 def main():
     copy_site_skeleton()

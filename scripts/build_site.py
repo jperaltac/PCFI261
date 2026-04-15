@@ -51,7 +51,11 @@ def build_week(week: Path) -> None:
     if mk.exists():
         # Esto fuerza a que exista notes.pdf si el Makefile lo produce
         print(f"==> Building {week.name} (make)")
-        run(["make"], cwd=week)
+        try:
+            run(["make"], cwd=week)
+        except RuntimeError as exc:
+            print(f"!! Build failed for {week.name}: {exc}")
+            print(f"!! Continuing with existing files in {week.name}.")
     else:
         print(f"==> Skipping {week.name} (no Makefile)")
 
@@ -205,7 +209,11 @@ def collect_reports():
         mk = report_dir / "Makefile"
         if mk.exists():
             print(f"==> Building {folder} (make)")
-            run(["make"], cwd=report_dir)
+            try:
+                run(["make"], cwd=report_dir)
+            except RuntimeError as exc:
+                print(f"!! Build failed for report {folder}: {exc}")
+                print(f"!! Continuing with existing files in {folder}.")
         else:
             print(f"==> Skipping {folder} (no Makefile)")
 

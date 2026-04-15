@@ -26,6 +26,13 @@ def format_week_label(week_name: str) -> str:
         return week_name
     return f"semana {m.group(1)}"
 
+
+def week_number(week_name: str) -> int | None:
+    m = re.fullmatch(r"week(\d+)", week_name)
+    if not m:
+        return None
+    return int(m.group(1))
+
 def run(cmd: list[str], cwd: Path) -> None:
     p = subprocess.run(cmd, cwd=str(cwd))
     if p.returncode != 0:
@@ -219,26 +226,52 @@ def write_index(pdfs):
     idx = PUBLIC / "index.html"
     html = idx.read_text(encoding="utf-8")
 
-    marker = '<ul id="weeks">'
+    marker = '<div id="weeks-units">'
     start = html.find(marker)
     if start == -1:
-        raise RuntimeError('No encuentro <ul id="weeks"> en site/index.html')
+        raise RuntimeError('No encuentro <div id="weeks-units"> en site/index.html')
 
     before = html[: start + len(marker)]
-    after = html[html.find("</ul>", start):]
+    after = html[html.find("</div>", start):]
 
-    items = []
-    for week, fname in pdfs:
-        week_label = format_week_label(week)
-        links = [f'<a href="weeks/{week}/">contenido</a>']
-        if fname:
-            mtime = int((PDF_DIR / fname).stat().st_mtime)
-            links.insert(0, f'<a href="pdf/{fname}?v={mtime}" target="_blank">apuntes</a>')
+    units = [
+        ("UNIDAD I", 1, 4),
+        ("UNIDAD II", 5, 8),
+        ("UNIDAD III", 9, 12),
+        ("UNIDAD EXTRA", 13, 16),
+    ]
 
-        items.append(f'\n      <li><strong>{week_label}</strong><span>{" · ".join(links)}</span></li>')
+    sections: list[str] = []
+    for title, week_min, week_max in units:
+        unit_items: list[str] = []
+        for week, fname in pdfs:
+            wnum = week_number(week)
+            if wnum is None or not (week_min <= wnum <= week_max):
+                continue
 
-    new_list = "".join(items) + "\n    "
-    html = before + new_list + after
+            week_label = format_week_label(week)
+            links = [f'<a href="weeks/{week}/">contenido</a>']
+            if fname:
+                mtime = int((PDF_DIR / fname).stat().st_mtime)
+                links.insert(0, f'<a href="pdf/{fname}?v={mtime}" target="_blank">apuntes</a>')
+
+            unit_items.append(f'\n          <li><strong>{week_label}</strong><span>{" · ".join(links)}</span></li>')
+
+        if not unit_items:
+            unit_items.append('\n          <li><strong>Sin semanas publicadas</strong><span>Próximamente</span></li>')
+
+        section_html = (
+            f'\n        <section class="weeks-unit">'
+            f'\n          <h2>Contenido por semana {title}</h2>'
+            '\n          <p>Accede al contenido organizado por semana. Cada entrada incluye el material de lectura y la carpeta <code>codes/</code> para scripts y notebooks.</p>'
+            '\n          <ul class="weeks-list">'
+            + "".join(unit_items)
+            + '\n          </ul>'
+            '\n        </section>'
+        )
+        sections.append(section_html)
+
+    html = before + "".join(sections) + "\n      " + after
 
     reports_marker = '<ul id="reports">'
     reports_start = html.find(reports_marker)

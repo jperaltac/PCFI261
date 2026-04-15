@@ -105,14 +105,31 @@ h1 {
   box-shadow: 0 16px 46px rgba(0,0,0,.35);
 }
 
-#weeks {
+.weeks-unit + .weeks-unit {
+  margin-top: 1.25rem;
+  padding-top: 1.1rem;
+  border-top: 1px solid rgba(160, 180, 228, .22);
+}
+
+.weeks-unit h2 {
+  margin: 0 0 .45rem;
+  font-size: 1.2rem;
+}
+
+.weeks-unit p {
+  margin: 0 0 .9rem;
+  color: var(--muted);
+}
+
+.weeks-list {
   list-style: none;
   padding: 0;
   display: grid;
   gap: .75rem;
+  margin: 0;
 }
 
-#weeks li {
+.weeks-list li {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -124,7 +141,7 @@ h1 {
   background: rgba(6, 10, 22, .5);
 }
 
-#weeks span {
+.weeks-list span {
   display: flex;
   gap: .7rem;
   flex-wrap: wrap;

@@ -262,11 +262,16 @@ def write_index(pdfs):
 
         section_html = (
             f'\n        <section class="weeks-unit">'
-            f'\n          <h2>Contenido por semana {title}</h2>'
-            '\n          <p>Accede al contenido organizado por semana. Cada entrada incluye el material de lectura y la carpeta <code>codes/</code> para scripts y notebooks.</p>'
-            '\n          <ul class="weeks-list">'
+            '\n          <details class="weeks-unit-details" open>'
+            '\n            <summary class="weeks-unit-summary">'
+            f'\n              <h2>Contenido por semana {title}</h2>'
+            '\n              <span class="toggle-label" aria-hidden="true"></span>'
+            '\n            </summary>'
+            '\n            <p>Accede al contenido organizado por semana. Cada entrada incluye el material de lectura y la carpeta <code>codes/</code> para scripts y notebooks.</p>'
+            '\n            <ul class="weeks-list">'
             + "".join(unit_items)
-            + '\n          </ul>'
+            + '\n            </ul>'
+            '\n          </details>'
             '\n        </section>'
         )
         sections.append(section_html)

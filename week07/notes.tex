@@ -56,7 +56,7 @@ La Semana 07 se divide en \textbf{Clase 1} y \textbf{Clase 2}, manteniendo la es
 \end{itemize}
 \end{frame}
 
-\begin{frame}{¿Qué es un autómata celular?}
+\begin{frame}{\texorpdfstring{\textquestiondown Qué es un autómata celular?}{¿Qué es un autómata celular?}}
 \justifying
 Un autómata celular (AC) es un sistema dinámico discreto definido por:
 \begin{enumerate}
@@ -119,39 +119,193 @@ La evolución completa del sistema emerge de repetir muchas veces una regla simp
 \end{columns}
 \end{frame}
 
-\begin{frame}{Reglas elementales de Wolfram}
+\begin{frame}{Por qué estudiar reglas tan simples}
+\justifying
+Un autómata celular elemental parece demasiado pobre: solo una fila de celdas,
+solo ceros y unos, y una regla que mira tres posiciones.
+
+\begin{block}{La idea importante}
+La pregunta no es si la regla local es complicada. La pregunta es qué aparece
+después de aplicar esa regla muchas veces, en muchas celdas, de forma
+simultánea.
+\end{block}
+
+\begin{itemize}
+    \item Sirven como laboratorio mínimo para estudiar \textbf{emergencia}.
+    \item Ayudan a entender cómo una regla microscópica produce patrones macroscópicos.
+    \item Permiten comparar orden, periodicidad, propagación y aparente azar.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Qué mira una celda antes de actualizarse}
+\begin{columns}[T,onlytextwidth]
+\column{0.52\textwidth}
+Para decidir el nuevo estado de la celda central, la regla mira:
+\begin{itemize}
+    \item la celda de la izquierda;
+    \item la celda central;
+    \item la celda de la derecha.
+\end{itemize}
+
+Cada una puede estar en estado $0$ o $1$.
+
+\begin{block}{Lectura local}
+La regla no ve toda la fila. Solo ve una pequeña ``ventana'' de tres celdas.
+\end{block}
+
+\column{0.43\textwidth}
+\centering
+\begin{tikzpicture}[scale=1.0]
+    \foreach \x/\txt/\col in {0/izq./MidnightBlue,1.2/centro/Crimson,2.4/der./MidnightBlue} {
+        \draw[fill=\col!12] (\x,0) rectangle ++(1,1);
+        \node at (\x+0.5,0.5) {\small \txt};
+    }
+    \node at (1.7,-0.55) {\Large $\Downarrow$};
+    \draw[fill=Crimson!15] (1.2,-1.9) rectangle ++(1,1);
+    \node at (1.7,-1.4) {\small nuevo};
+\end{tikzpicture}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Por qué aparecen $2^3=8$ vecindades}
 \small
-Como la vecindad tiene tres celdas binarias, existen
+Cada vecindad local tiene tres lugares:
 \[
-2^3 = 8
-\]
-configuraciones locales posibles.
-
-Para cada configuración, la regla decide si el nuevo estado será $0$ o $1$.
-Por eso el número total de reglas es
-\[
-2^8 = 256.
+(\text{izquierda},\text{centro},\text{derecha}).
 \]
 
-\begin{block}{Codificación}
-Una regla se identifica con un número entre $0$ y $255$. Por ejemplo, la regla 30 y la regla 110 son famosas por producir patrones ricos y difíciles de anticipar visualmente.
+Como cada lugar puede tomar dos valores, $0$ o $1$, el número de combinaciones es
+\[
+2\times 2\times 2 = 2^3 = 8.
+\]
+
+\begin{center}
+\begin{tabular}{cccccccc}
+\toprule
+111 & 110 & 101 & 100 & 011 & 010 & 001 & 000 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{block}{Interpretación}
+Estas ocho son todas las situaciones locales que una celda puede ver antes de
+decidir su próximo estado.
+\end{block}
+\end{frame}
+
+\begin{frame}{Una regla es una tabla de decisiones}
+\small
+Una regla elemental responde una pregunta para cada una de las ocho vecindades:
+\[
+\text{\textquestiondown la celda central será }0\text{ o }1\text{ en el próximo paso?}
+\]
+
+\begin{center}
+\begin{tabular}{c|cccccccc}
+\toprule
+vecindad actual & 111 & 110 & 101 & 100 & 011 & 010 & 001 & 000 \\
+\midrule
+nuevo estado   & ?   & ?   & ?   & ?   & ?   & ?   & ?   & ?   \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{itemize}
+    \item Si la regla pone un $1$, la celda central queda activa.
+    \item Si la regla pone un $0$, la celda central queda inactiva.
+    \item La misma tabla se aplica a todas las celdas de la fila.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Ejemplo: cómo se codifica la regla 30}
+\small
+Wolfram propuso ordenar las vecindades de $111$ a $000$ y escribir las ocho
+respuestas como un número binario.
+
+\begin{center}
+\begin{tabular}{c|cccccccc}
+\toprule
+vecindad actual & 111 & 110 & 101 & 100 & 011 & 010 & 001 & 000 \\
+\midrule
+nuevo estado   & 0   & 0   & 0   & 1   & 1   & 1   & 1   & 0   \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Las respuestas forman el número binario
+\[
+00011110_2.
+\]
+En base decimal,
+\[
+00011110_2 = 30.
+\]
+
+\begin{block}{Entonces}
+``Regla 30'' no es un nombre arbitrario: es la tabla de actualización escrita
+como un número.
+\end{block}
+\end{frame}
+
+\begin{frame}{Por qué hay $2^8=256$ reglas elementales}
+\small
+Ya vimos que existen ocho vecindades posibles. Para cada una, la regla debe
+elegir una salida:
+\[
+0 \quad \text{o} \quad 1.
+\]
+
+Por lo tanto, hay dos opciones para la primera vecindad, dos para la segunda, y
+así sucesivamente:
+\[
+2\times 2\times 2\times 2\times 2\times 2\times 2\times 2 = 2^8 = 256.
+\]
+
+\begin{alertblock}{Idea clave}
+Las 256 reglas son todas las tablas posibles que convierten una vecindad de tres
+celdas binarias en el nuevo estado de la celda central.
+\end{alertblock}
+\end{frame}
+
+\begin{frame}{Distintas reglas, distintos comportamientos}
+\small
+Aunque todas las reglas tienen el mismo formato, no todas producen la misma
+dinámica.
+
+\begin{center}
+\begin{tabular}{c|p{0.68\textwidth}}
+\toprule
+Regla & Comportamiento típico \\
+\midrule
+0 & Apaga todo: después de un paso todas las celdas quedan en $0$. \\
+90 & Produce patrones triangulares y autosimilares, relacionados con el triángulo de Sierpinski. \\
+30 & Produce una mezcla de estructura y aparente aleatoriedad. \\
+110 & Produce estructuras persistentes e interacciones; es famosa por su riqueza computacional. \\
+184 & Puede interpretarse como un modelo simple de tráfico en una dimensión. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{block}{Mensaje}
+Pequeños cambios en la tabla local pueden cambiar completamente el patrón global.
 \end{block}
 \end{frame}
 
 \begin{frame}{Orden, periodicidad y complejidad}
+\small
+Una forma útil de mirar las reglas es preguntarse qué tipo de película generan
+al iterarlas muchas veces.
+
 \begin{itemize}
-    \item Algunas reglas eliminan rápidamente toda actividad y llevan al sistema a un estado homogéneo.
-    \item Otras producen patrones periódicos o altamente simétricos.
-    \item Algunas generan estructuras móviles, choques y regiones aparentemente aleatorias.
+    \item \textbf{Orden}: la actividad desaparece o queda una estructura muy simple.
+    \item \textbf{Periodicidad}: aparecen patrones que se repiten.
+    \item \textbf{Aparente azar}: el patrón parece irregular, aunque la regla sea determinista.
+    \item \textbf{Complejidad}: aparecen estructuras que se mueven, chocan o persisten.
 \end{itemize}
 
 \begin{block}{Pregunta central}
-¿Qué rasgos de una regla local favorecen transmisión de información, memoria o interacción entre estructuras?
+\textquestiondown Qué rasgos de una regla local favorecen transmisión de información, memoria o interacción entre estructuras?
 \end{block}
-
-\begin{alertblock}{Lectura computacional}
-Los autómatas celulares son laboratorios ideales para explorar cómo una implementación muy simple puede producir dinámica global no trivial.
-\end{alertblock}
 \end{frame}
 
 \begin{frame}{Ejemplo: regla 30}
@@ -331,10 +485,10 @@ Notebook o script con imágenes de la evolución, un gráfico de población viva
 
 \begin{frame}{Preguntas guía para cerrar la semana}
 \begin{itemize}
-    \item ¿Qué cambia al pasar de reglas 1D a una dinámica 2D?
-    \item ¿Por qué algunas estructuras sobreviven y otras colapsan rápidamente?
-    \item ¿Qué significa aquí ``complejidad'' y cómo podríamos medirla?
-    \item ¿Qué otras aplicaciones podrían modelarse con reglas locales en una grilla?
+    \item \textquestiondown Qué cambia al pasar de reglas 1D a una dinámica 2D?
+    \item \textquestiondown Por qué algunas estructuras sobreviven y otras colapsan rápidamente?
+    \item \textquestiondown Qué significa aquí ``complejidad'' y cómo podríamos medirla?
+    \item \textquestiondown Qué otras aplicaciones podrían modelarse con reglas locales en una grilla?
 \end{itemize}
 \end{frame}
 

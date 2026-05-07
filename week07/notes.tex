@@ -1,6 +1,6 @@
 \input{../latex/preamble-beamer.tex}
 
-\weektitle{07}{Autómatas celulares y Juego de la Vida de Conway}
+\weektitle{07}{autómatas celulares elementales y tráfico con la Regla 184}
 
 \begin{document}
 
@@ -29,10 +29,10 @@ La Semana 07 se divide en \textbf{Clase 1} y \textbf{Clase 2}, manteniendo la es
 \column{0.48\textwidth}
 \textbf{Clase 2}
 \begin{itemize}
-    \item autómatas bidimensionales;
-    \item reglas de nacimiento y supervivencia;
-    \item implementación del Juego de la Vida;
-    \item análisis de patrones y fenómenos emergentes.
+    \item Regla 184 como modelo mínimo de tráfico;
+    \item visualización espacio-tiempo versus carretera animada;
+    \item flujo, densidad y bloqueo;
+    \item presentación guiada del notebook y propuestas de extensión.
 \end{itemize}
 \end{columns}
 \end{frame}
@@ -119,54 +119,6 @@ La evolución completa del sistema emerge de repetir muchas veces una regla simp
 \end{columns}
 \end{frame}
 
-\begin{frame}{Por qué estudiar reglas tan simples}
-\justifying
-Un autómata celular elemental parece demasiado pobre: solo una fila de celdas,
-solo ceros y unos, y una regla que mira tres posiciones.
-
-\begin{block}{La idea importante}
-La pregunta no es si la regla local es complicada. La pregunta es qué aparece
-después de aplicar esa regla muchas veces, en muchas celdas, de forma
-simultánea.
-\end{block}
-
-\begin{itemize}
-    \item Sirven como laboratorio mínimo para estudiar \textbf{emergencia}.
-    \item Ayudan a entender cómo una regla microscópica produce patrones macroscópicos.
-    \item Permiten comparar orden, periodicidad, propagación y aparente azar.
-\end{itemize}
-\end{frame}
-
-\begin{frame}{Qué mira una celda antes de actualizarse}
-\begin{columns}[T,onlytextwidth]
-\column{0.52\textwidth}
-Para decidir el nuevo estado de la celda central, la regla mira:
-\begin{itemize}
-    \item la celda de la izquierda;
-    \item la celda central;
-    \item la celda de la derecha.
-\end{itemize}
-
-Cada una puede estar en estado $0$ o $1$.
-
-\begin{block}{Lectura local}
-La regla no ve toda la fila. Solo ve una pequeña ``ventana'' de tres celdas.
-\end{block}
-
-\column{0.43\textwidth}
-\centering
-\begin{tikzpicture}[scale=1.0]
-    \foreach \x/\txt/\col in {0/izq./MidnightBlue,1.2/centro/Crimson,2.4/der./MidnightBlue} {
-        \draw[fill=\col!12] (\x,0) rectangle ++(1,1);
-        \node at (\x+0.5,0.5) {\small \txt};
-    }
-    \node at (1.7,-0.55) {\Large $\Downarrow$};
-    \draw[fill=Crimson!15] (1.2,-1.9) rectangle ++(1,1);
-    \node at (1.7,-1.4) {\small nuevo};
-\end{tikzpicture}
-\end{columns}
-\end{frame}
-
 \begin{frame}{Por qué aparecen $2^3=8$ vecindades}
 \small
 Cada vecindad local tiene tres lugares:
@@ -188,39 +140,13 @@ Como cada lugar puede tomar dos valores, $0$ o $1$, el número de combinaciones 
 \end{center}
 
 \begin{block}{Interpretación}
-Estas ocho son todas las situaciones locales que una celda puede ver antes de
-decidir su próximo estado.
+Estas ocho son todas las situaciones locales que una celda puede ver antes de decidir su próximo estado.
 \end{block}
-\end{frame}
-
-\begin{frame}{Una regla es una tabla de decisiones}
-\small
-Una regla elemental responde una pregunta para cada una de las ocho vecindades:
-\[
-\text{\textquestiondown la celda central será }0\text{ o }1\text{ en el próximo paso?}
-\]
-
-\begin{center}
-\begin{tabular}{c|cccccccc}
-\toprule
-vecindad actual & 111 & 110 & 101 & 100 & 011 & 010 & 001 & 000 \\
-\midrule
-nuevo estado   & ?   & ?   & ?   & ?   & ?   & ?   & ?   & ?   \\
-\bottomrule
-\end{tabular}
-\end{center}
-
-\begin{itemize}
-    \item Si la regla pone un $1$, la celda central queda activa.
-    \item Si la regla pone un $0$, la celda central queda inactiva.
-    \item La misma tabla se aplica a todas las celdas de la fila.
-\end{itemize}
 \end{frame}
 
 \begin{frame}{Ejemplo: cómo se codifica la regla 30}
 \small
-Wolfram propuso ordenar las vecindades de $111$ a $000$ y escribir las ocho
-respuestas como un número binario.
+Wolfram propuso ordenar las vecindades de $111$ a $000$ y escribir las ocho respuestas como un número binario.
 
 \begin{center}
 \begin{tabular}{c|cccccccc}
@@ -240,38 +166,10 @@ En base decimal,
 \[
 00011110_2 = 30.
 \]
-
-\begin{block}{Entonces}
-``Regla 30'' no es un nombre arbitrario: es la tabla de actualización escrita
-como un número.
-\end{block}
-\end{frame}
-
-\begin{frame}{Por qué hay $2^8=256$ reglas elementales}
-\small
-Ya vimos que existen ocho vecindades posibles. Para cada una, la regla debe
-elegir una salida:
-\[
-0 \quad \text{o} \quad 1.
-\]
-
-Por lo tanto, hay dos opciones para la primera vecindad, dos para la segunda, y
-así sucesivamente:
-\[
-2\times 2\times 2\times 2\times 2\times 2\times 2\times 2 = 2^8 = 256.
-\]
-
-\begin{alertblock}{Idea clave}
-Las 256 reglas son todas las tablas posibles que convierten una vecindad de tres
-celdas binarias en el nuevo estado de la celda central.
-\end{alertblock}
 \end{frame}
 
 \begin{frame}{Distintas reglas, distintos comportamientos}
 \small
-Aunque todas las reglas tienen el mismo formato, no todas producen la misma
-dinámica.
-
 \begin{center}
 \begin{tabular}{c|p{0.68\textwidth}}
 \toprule
@@ -291,23 +189,6 @@ Pequeños cambios en la tabla local pueden cambiar completamente el patrón glob
 \end{block}
 \end{frame}
 
-\begin{frame}{Orden, periodicidad y complejidad}
-\small
-Una forma útil de mirar las reglas es preguntarse qué tipo de película generan
-al iterarlas muchas veces.
-
-\begin{itemize}
-    \item \textbf{Orden}: la actividad desaparece o queda una estructura muy simple.
-    \item \textbf{Periodicidad}: aparecen patrones que se repiten.
-    \item \textbf{Aparente azar}: el patrón parece irregular, aunque la regla sea determinista.
-    \item \textbf{Complejidad}: aparecen estructuras que se mueven, chocan o persisten.
-\end{itemize}
-
-\begin{block}{Pregunta central}
-\textquestiondown Qué rasgos de una regla local favorecen transmisión de información, memoria o interacción entre estructuras?
-\end{block}
-\end{frame}
-
 \begin{frame}{Ejemplo: regla 30}
 \begin{columns}[T]
 \begin{column}{0.48\textwidth}
@@ -319,10 +200,6 @@ al iterarlas muchas veces.
     \item Genera una mezcla de simetría y aparente aleatoriedad.
     \item Se ha usado como ejemplo de generación pseudoaleatoria.
 \end{itemize}
-
-\begin{block}{Observación}
-Aunque la regla es totalmente determinista, la textura espacial puede parecer caótica.
-\end{block}
 \end{column}
 \end{columns}
 \end{frame}
@@ -346,17 +223,13 @@ Aunque la regla es totalmente determinista, la textura espacial puede parecer ca
     \item Describir visualmente qué reglas parecen más ordenadas y cuáles más complejas.
     \item Proponer una métrica simple: fracción de celdas activas, ancho del patrón o número de transiciones $0\leftrightarrow1$.
 \end{enumerate}
-
-\begin{block}{Entregable sugerido}
-Script o notebook con figuras, comparación entre reglas y una breve interpretación sobre propagación, simetría y complejidad.
-\end{block}
 \end{frame}
 
 \begin{frame}{Cierre Clase 1}
 \begin{itemize}
     \item Un autómata celular traduce una regla local discreta en una evolución espacio-temporal completa.
     \item Las reglas elementales muestran que incluso en 1D aparece una gran diversidad de comportamientos.
-    \item La siguiente pregunta natural es qué ocurre al pasar a dos dimensiones.
+    \item La siguiente pregunta natural es qué ocurre cuando elegimos una regla con interpretación física directa.
 \end{itemize}
 \end{frame}
 
@@ -366,142 +239,199 @@ Script o notebook con figuras, comparación entre reglas y una breve interpretac
 \centering
 \vfill
 {\Huge \bfseries Clase 2}\\[0.4cm]
-{\Large Juego de la Vida: patrones bidimensionales y emergencia}
+{\Large Tráfico discreto, Regla 184 y visualización del notebook}
 \vfill
 \end{frame}
 
 \begin{frame}{Objetivos de la Clase 2}
 \begin{itemize}
-    \item Entender la regla del Juego de la Vida como un autómata bidimensional.
-    \item Implementar conteo de vecinos y actualización sincrónica en una grilla 2D.
-    \item Reconocer patrones típicos: still lifes, osciladores y naves.
-    \item Analizar cómo reglas muy cortas producen estructuras persistentes y móviles.
+    \item Interpretar la Regla 184 como un modelo mínimo de tráfico en una carretera unidimensional.
+    \item Relacionar ocupación local, huecos disponibles, densidad y flujo.
+    \item Comparar dos visualizaciones del mismo sistema: diagrama espacio-tiempo y carretera animada.
+    \item Usar el notebook como laboratorio guiado para explorar extensiones del modelo.
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Del caso 1D al caso 2D}
+\begin{frame}{De autómata elemental a modelo de tráfico}
 \justifying
-En el caso bidimensional, cada celda ocupa una posición $(i,j)$ en una grilla y su
-vecindad más común es la de Moore: las ocho celdas que la rodean.
-
-\begin{equation*}
-s_{ij}(t+1)=F\big(\text{vecinos de } (i,j)\big).
-\end{equation*}
+La Regla 184 es un autómata elemental binario, pero además admite una lectura física muy clara:
 
 \begin{itemize}
-    \item La estructura espacial es más rica que en 1D.
-    \item Aparecen objetos localizados que interactúan entre sí.
-    \item La visualización se vuelve una herramienta central para entender la dinámica.
+    \item $1$ significa ``hay un auto en esta celda'';
+    \item $0$ significa ``la celda está vacía'';
+    \item un auto avanza una celda a la derecha si la celda de adelante está libre.
 \end{itemize}
-\end{frame}
 
-\begin{frame}{Reglas del Juego de la Vida de Conway}
-\begin{block}{Estados}
-Cada celda está \textbf{viva} ($1$) o \textbf{muerta} ($0$).
-\end{block}
-
-\begin{block}{Actualización}
-Sea $n$ el número de vecinos vivos:
-\begin{itemize}
-    \item una celda viva sobrevive si $n=2$ o $n=3$;
-    \item una celda muerta nace si $n=3$;
-    \item en cualquier otro caso, la celda queda o pasa a muerta.
-\end{itemize}
-\end{block}
-
-\begin{alertblock}{Notación compacta}
-Se suele resumir como \texttt{B3/S23}: birth con 3 vecinos, survival con 2 o 3.
+\begin{alertblock}{Idea clave}
+La dinámica sigue siendo discreta. No estamos simulando una carretera continua, sino una cadena de sitios con exclusión: dos autos no pueden ocupar la misma celda al mismo tiempo.
 \end{alertblock}
 \end{frame}
 
-\begin{frame}{Qué tipos de patrones aparecen}
+\begin{frame}{Lectura local de la Regla 184}
+\small
+\begin{center}
+\begin{tabular}{c|c|p{0.55\textwidth}}
+\toprule
+Vecindad & Salida & Interpretación de tráfico \\
+\midrule
+111 & 1 & congestión compacta: el auto central no puede moverse \\
+110 & 1 & el auto central permanece porque adelante hay auto \\
+101 & 0 & el auto central avanza y deja libre la celda \\
+100 & 1 & un auto llega desde la izquierda a una celda vacía \\
+011 & 1 & el auto central sigue bloqueado \\
+010 & 0 & el auto central avanza una celda a la derecha \\
+001 & 0 & no llega un auto desde la izquierda \\
+000 & 0 & la carretera sigue vacía localmente \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{block}{Mensaje}
+La Regla 184 no solo mueve autos: también hace visible el papel de los \textbf{huecos}. En este modelo, los huecos son los que ``transportan'' posibilidad de movimiento.
+\end{block}
+\end{frame}
+
+\begin{frame}{Flujo, densidad y bloqueo}
 \begin{columns}[T]
-\begin{column}{0.52\textwidth}
+\begin{column}{0.53\textwidth}
 \begin{itemize}
-    \item \textbf{Still lifes}: configuraciones estáticas como el bloque.
-    \item \textbf{Osciladores}: repiten una forma tras algunos pasos, como el blinker.
-    \item \textbf{Naves}: se desplazan por la grilla, como el glider.
-    \item \textbf{Semillas activas}: estructuras que evolucionan por mucho tiempo antes de estabilizarse.
+    \item \textbf{Densidad}: fracción de celdas ocupadas por autos.
+    \item \textbf{Flujo}: fracción de autos que logra avanzar en un paso temporal.
+    \item \textbf{Bloqueo}: aparece cuando faltan huecos disponibles por delante.
 \end{itemize}
+
+\begin{alertblock}{Pregunta conceptual}
+\textquestiondown Por qué el flujo no es máximo cuando la carretera está casi llena?
+\end{alertblock}
 \end{column}
-\begin{column}{0.48\textwidth}
-\includegraphics[width=\linewidth]{life_evolution.png}
+\begin{column}{0.47\textwidth}
+\begin{tikzpicture}[scale=0.62]
+    \foreach \x in {0,...,11} {
+        \draw[fill=black!75] (\x,0) rectangle ++(1,1.2);
+        \draw[white, dashed, line width=0.5pt] (\x+0.15,0.6) -- (\x+0.85,0.6);
+    }
+    \foreach \x in {1,2,5,6,7,10} {
+        \draw[fill=DodgerBlue!80] (\x+0.08,0.25) rectangle ++(0.84,0.38);
+    }
+    \node at (6,-0.7) {ocupación alta $\Rightarrow$ pocos huecos};
+\end{tikzpicture}
 \end{column}
 \end{columns}
 \end{frame}
 
-\begin{frame}{Lectura física del modelo}
+\begin{frame}{Dos visualizaciones del mismo sistema}
+\begin{columns}[T]
+\begin{column}{0.49\textwidth}
+\begin{block}{Diagrama espacio-tiempo}
 \begin{itemize}
-    \item No es un modelo realista de biología en detalle.
-    \item Sí captura una idea muy valiosa: \textbf{interacción local + umbrales} puede generar patrones globales robustos.
-    \item Permite discutir estabilidad, propagación, colisiones y sensibilidad al estado inicial.
+    \item Cada fila representa un instante.
+    \item Cada columna representa una posición.
+    \item Permite ver trayectorias, pendientes y zonas bloqueadas.
 \end{itemize}
-
-\begin{block}{Conexión con el curso}
-El Juego de la Vida es un ejemplo excelente de modelación computacional: definimos un sistema discreto, lo implementamos, lo visualizamos y luego interpretamos su dinámica.
 \end{block}
-\end{frame}
+\end{column}
+\begin{column}{0.49\textwidth}
+\begin{block}{Carretera animada}
+\begin{itemize}
+    \item Hace visible el movimiento como objetos discretos.
+    \item Ayuda a interpretar quién avanza y quién se bloquea.
+    \item Es muy útil para discutir el notebook en vivo.
+\end{itemize}
+\end{block}
+\end{column}
+\end{columns}
 
-\begin{frame}{Flujo de implementación}
-\small
-\begin{enumerate}
-    \item Definir una matriz binaria para el estado inicial.
-    \item Contar vecinos vivos para cada celda.
-    \item Construir una nueva matriz aplicando las reglas de Conway.
-    \item Repetir por muchos pasos y guardar instantáneas.
-    \item Analizar si el sistema muere, se estabiliza, oscila o sigue produciendo actividad.
-\end{enumerate}
-
-\begin{alertblock}{Decisión de modelamiento}
-Una condición periódica de borde convierte la grilla en un toro y evita que las estructuras ``desaparezcan'' por los bordes.
+\vspace{0.2cm}
+\begin{alertblock}{Punto pedagógico}
+Ambas vistas representan exactamente la misma evolución. La diferencia está en qué preguntas se vuelven más fáciles de hacer con cada una.
 \end{alertblock}
 \end{frame}
 
-\begin{frame}[fragile]{Código base: conteo de vecinos y actualización}
-\inputminted[firstline=1,lastline=20]{python}{codes/game_of_life.py}
+\begin{frame}{Librerías útiles para visualizar}
+\begin{columns}[T]
+\begin{column}{0.52\textwidth}
+\begin{itemize}
+    \item \texttt{numpy}: estados binarios y vecindades con \texttt{roll}.
+    \item \texttt{matplotlib.pyplot}: figuras, ejes y diagrama espacio-tiempo.
+    \item \texttt{ListedColormap}: paleta binaria simple para autos y huecos.
+    \item \texttt{Rectangle} y \texttt{Circle}: autos, ruedas y carretera.
+    \item \texttt{FuncAnimation}: animación cuadro a cuadro dentro del notebook.
+    \item \texttt{IPython.display}: mostrar la animación embebida en Jupyter.
+\end{itemize}
+\end{column}
+\begin{column}{0.48\textwidth}
+\begin{block}{Decisión de diseño}
+Para docencia inicial conviene que el movimiento se vea por saltos discretos, no con interpolación continua. Así la visualización sigue siendo fiel a la lógica del autómata.
+\end{block}
+
+\begin{block}{Salida práctica}
+El mismo notebook puede exportar GIF o MP4 para insertar ejemplos cortos en futuras clases o evaluaciones.
+\end{block}
+\end{column}
+\end{columns}
 \end{frame}
 
-\begin{frame}[fragile]{Código de apoyo: semillas iniciales}
-\inputminted[firstline=23,lastline=43]{python}{codes/game_of_life.py}
+\begin{frame}[fragile]{Código base: evolución de la Regla 184}
+\inputminted[firstline=1,lastline=37]{python}{codes/rule184_traffic.py}
 \end{frame}
 
-\begin{frame}[fragile]{Código de apoyo: simulación e instantáneas}
-\inputminted[firstline=46,lastline=62]{python}{codes/game_of_life.py}
+\begin{frame}[fragile]{Código de apoyo: carretera animada}
+\inputminted[firstline=40,lastline=78]{python}{codes/rule184_traffic.py}
 \end{frame}
 
-\begin{frame}{Actividades propuestas para la Clase 2}
+\begin{frame}[fragile]{Código de apoyo: exportación y flujo}
+\inputminted[firstline=79,lastline=86]{python}{codes/rule184_traffic.py}
+\end{frame}
+
+\begin{frame}{Secuencia sugerida para la clase}
 \begin{enumerate}
-    \item Implementar el Juego de la Vida con bordes periódicos.
-    \item Probar al menos tres semillas: glider, blinker y R-pentomino.
-    \item Medir el número de celdas vivas en función del tiempo.
-    \item Identificar si el patrón converge a reposo, oscilación o propagación.
-    \item Desafío: comparar con una variante de reglas, por ejemplo \texttt{B36/S23}.
+    \item Mostrar la tabla local de la Regla 184 y predecir un paso a mano.
+    \item Ejecutar el caso de un solo auto y preguntar por qué aparece una diagonal limpia.
+    \item Pasar a dos autos y discutir cuándo aparece el bloqueo.
+    \item Variar densidad y preguntar dónde se espera mayor flujo.
+    \item Introducir la vista carretera como apoyo visual para interpretar el mismo experimento.
+    \item Si alcanza el tiempo, activar el semáforo del notebook como control externo local.
+\end{enumerate}
+\end{frame}
+
+\begin{frame}{Actividades propuestas para 75--90 min}
+\begin{enumerate}
+    \item \textbf{Base}: correr el notebook con densidad baja, media y alta.
+    \item \textbf{Comparación}: contrastar carretera animada versus espacio-tiempo para la misma historia.
+    \item \textbf{Medición}: estimar flujo promedio en función de la densidad.
+    \item \textbf{Extensión}: modificar el período del semáforo y observar si la cola aumenta o disminuye.
+    \item \textbf{Discusión}: proponer una regla alternativa con interpretación física simple.
 \end{enumerate}
 
 \begin{block}{Entregable sugerido}
-Notebook o script con imágenes de la evolución, un gráfico de población viva y una discusión breve sobre patrones emergentes.
+Notebook o script con capturas de la evolución, una curva simple flujo--densidad y una breve interpretación física de los resultados.
 \end{block}
 \end{frame}
 
-\begin{frame}{Preguntas guía para cerrar la semana}
+\begin{frame}{Ideas de extensión}
 \begin{itemize}
-    \item \textquestiondown Qué cambia al pasar de reglas 1D a una dinámica 2D?
-    \item \textquestiondown Por qué algunas estructuras sobreviven y otras colapsan rápidamente?
-    \item \textquestiondown Qué significa aquí ``complejidad'' y cómo podríamos medirla?
-    \item \textquestiondown Qué otras aplicaciones podrían modelarse con reglas locales en una grilla?
+    \item frontera abierta con entrada y salida de autos;
+    \item frenado probabilístico para romper el carácter determinista;
+    \item dos tipos de conductores con reglas diferentes;
+    \item medición del tiempo de viaje de un auto marcado;
+    \item comparación entre Regla 184 y otras reglas elementales con interpretación menos física.
 \end{itemize}
+
+\begin{alertblock}{Buena pregunta de cierre}
+\textquestiondown Qué parte del tráfico real sí captura este modelo y qué parte deja necesariamente fuera?
+\end{alertblock}
 \end{frame}
 
 \begin{frame}{Cierre de la semana}
 \begin{itemize}
-    \item Los autómatas celulares muestran cómo reglas locales discretas generan patrones espacio-temporales ricos.
-    \item Las reglas elementales son una puerta de entrada simple a la idea de emergencia.
-    \item El Juego de la Vida cierra la semana conectando implementación, visualización y análisis de comportamiento colectivo.
+    \item Los autómatas celulares elementales ya muestran una gran diversidad de comportamiento emergente.
+    \item La Regla 184 destaca porque combina simplicidad computacional con una lectura física muy directa.
+    \item El notebook de tráfico convierte esa regla en una experiencia visual útil para modelar, medir e interpretar.
 \end{itemize}
 
 \vspace{0.2cm}
 \centering
-\textbf{Próximo paso natural:} medir observables y comparar familias de reglas más allá de Conway.
+\textbf{Próximo paso natural:} comparar la Regla 184 con modelos de tráfico más ricos o con reglas estocásticas.
 \end{frame}
 
 \end{document}

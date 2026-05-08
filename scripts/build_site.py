@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import re
 import shutil
 import subprocess
-import re
-from pathlib import Path
 from html import escape
+from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
 SITE_SRC = REPO / "site"
@@ -33,36 +33,44 @@ def week_number(week_name: str) -> int | None:
         return None
     return int(m.group(1))
 
+
 def run(cmd: list[str], cwd: Path) -> None:
     p = subprocess.run(cmd, cwd=str(cwd))
     if p.returncode != 0:
         raise RuntimeError(f"Command failed ({p.returncode}): {' '.join(cmd)} (cwd={cwd})")
 
-def copy_site_skeleton():
+
+def copy_site_skeleton() -> None:
     if PUBLIC.exists():
         shutil.rmtree(PUBLIC)
     shutil.copytree(SITE_SRC, PUBLIC)
 
-def find_weeks():
+
+def find_weeks() -> list[Path]:
     return sorted([p for p in REPO.glob("week*/") if p.is_dir()])
 
-def build_week(week: Path) -> None:
-    mk = week / "Makefile"
-    if mk.exists():
-        # Esto fuerza a que exista notes.pdf si el Makefile lo produce
-        print(f"==> Building {week.name} (make)")
-        try:
-            run(["make"], cwd=week)
-        except RuntimeError as exc:
-            print(f"!! Build failed for {week.name}: {exc}")
-            print(f"!! Continuing with existing files in {week.name}.")
-    else:
-        print(f"==> Skipping {week.name} (no Makefile)")
+
+def build_directory(target: Path, label: str) -> str | None:
+    mk = target / "Makefile"
+    if not mk.exists():
+        print(f"==> Skipping {label} (no Makefile)")
+        return None
+
+    print(f"==> Building {label} (make)")
+    try:
+        run(["make"], cwd=target)
+    except RuntimeError as exc:
+        print(f"!! Build failed for {label}: {exc}")
+        return f"{label}: build failed ({exc})"
+
+    return None
+
 
 def read_links_file(week: Path) -> list[str]:
     links_file = week / "codes" / "links.txt"
     if not links_file.exists():
         return []
+
     links: list[str] = []
     for line in links_file.read_text(encoding="utf-8").splitlines():
         link = line.strip()
@@ -72,7 +80,7 @@ def read_links_file(week: Path) -> list[str]:
     return links
 
 
-def write_week_page(week: Path, out: Path, assets: list[str], codes: list[str], links: list[str]):
+def write_week_page(week: Path, out: Path, assets: list[str], codes: list[str], links: list[str]) -> None:
     week_label = format_week_label(week.name)
 
     def to_items(names: list[str], prefix: str) -> str:
@@ -137,7 +145,7 @@ def write_week_page(week: Path, out: Path, assets: list[str], codes: list[str], 
     (out / "index.html").write_text(html, encoding="utf-8")
 
 
-def publish_week_assets(week: Path):
+def publish_week_assets(week: Path) -> None:
     out = WEEKS_DIR / week.name
     out.mkdir(parents=True, exist_ok=True)
     asset_dir = out / "assets"
@@ -148,37 +156,34 @@ def publish_week_assets(week: Path):
     published_assets: list[str] = []
     published_codes: list[str] = []
 
-    # Copia imágenes/logo/etc
     for ext in ASSET_EXTS:
         for f in week.glob(ext):
-            # Evita duplicar notes.pdf en assets (lo servimos desde /pdf/)
             if f.name == "notes.pdf":
                 continue
             shutil.copy2(f, asset_dir / f.name)
             published_assets.append(f.name)
 
-    for ext in CODE_EXTS:
-        for f in (week / "codes").glob(ext):
-            shutil.copy2(f, codes_dir / f.name)
-            published_codes.append(f.name)
+    week_codes_dir = week / "codes"
+    if week_codes_dir.exists():
+        for ext in CODE_EXTS:
+            for f in week_codes_dir.glob(ext):
+                shutil.copy2(f, codes_dir / f.name)
+                published_codes.append(f.name)
 
     links = read_links_file(week)
     write_week_page(week, out, sorted(published_assets), sorted(published_codes), links)
 
-    # (Opcional) publicar scripts
-    # for ext in CODE_EXTS:
-    #     for f in week.glob(ext):
-    #         shutil.copy2(f, out / f.name)
 
-def collect_pdfs():
+def collect_pdfs() -> tuple[list[tuple[str, str | None]], list[str]]:
     PDF_DIR.mkdir(parents=True, exist_ok=True)
-    items = []
+    items: list[tuple[str, str | None]] = []
+    failures: list[str] = []
 
     for week in find_weeks():
-        # 1) Compila semana (make)
-        build_week(week)
+        build_error = build_directory(week, week.name)
+        if build_error:
+            failures.append(build_error)
 
-        # 2) Copia PDF si existe
         pdf = week / "notes.pdf"
         if pdf.exists():
             target = PDF_DIR / f"{week.name}.pdf"
@@ -187,35 +192,31 @@ def collect_pdfs():
         else:
             print(f"!! No PDF found for {week.name}: expected {pdf}")
             pdf_name = None
+            if (week / "Makefile").exists():
+                failures.append(f"{week.name}: Makefile present but notes.pdf was not produced")
 
-        # 3) Copia assets
         publish_week_assets(week)
-
         items.append((week.name, pdf_name))
 
-    return items
+    return items, failures
 
-def collect_reports():
+
+def collect_reports() -> tuple[list[tuple[str, str, str | None]], list[str]]:
     PDF_DIR.mkdir(parents=True, exist_ok=True)
     items: list[tuple[str, str, str | None]] = []
+    failures: list[str] = []
 
     for folder, label in REPORTS:
         report_dir = REPO / folder
         if not report_dir.exists():
             print(f"!! Report folder not found: {report_dir}")
             items.append((folder, label, None))
+            failures.append(f"{folder}: report folder not found")
             continue
 
-        mk = report_dir / "Makefile"
-        if mk.exists():
-            print(f"==> Building {folder} (make)")
-            try:
-                run(["make"], cwd=report_dir)
-            except RuntimeError as exc:
-                print(f"!! Build failed for report {folder}: {exc}")
-                print(f"!! Continuing with existing files in {folder}.")
-        else:
-            print(f"==> Skipping {folder} (no Makefile)")
+        build_error = build_directory(report_dir, folder)
+        if build_error:
+            failures.append(build_error)
 
         pdf = report_dir / "notes.pdf"
         if pdf.exists():
@@ -225,12 +226,18 @@ def collect_reports():
         else:
             print(f"!! No PDF found for report {folder}: expected {pdf}")
             pdf_name = None
+            if (report_dir / "Makefile").exists():
+                failures.append(f"{folder}: Makefile present but notes.pdf was not produced")
 
         items.append((folder, label, pdf_name))
 
-    return items
+    return items, failures
 
-def write_index(pdfs):
+
+def write_index(
+    pdfs: list[tuple[str, str | None]],
+    reports: list[tuple[str, str, str | None]],
+) -> None:
     idx = PUBLIC / "index.html"
     html = idx.read_text(encoding="utf-8")
 
@@ -295,7 +302,7 @@ def write_index(pdfs):
     reports_after = html[html.find("</ul>", reports_start):]
 
     reports_list = []
-    for report_folder, report_label, report_fname in collect_reports():
+    for _report_folder, report_label, report_fname in reports:
         if report_fname:
             mtime = int((PDF_DIR / report_fname).stat().st_mtime)
             report_link = f'pdf/{report_fname}?v={mtime}'
@@ -310,13 +317,22 @@ def write_index(pdfs):
     reports_html = "".join(reports_list) + "\n    "
     idx.write_text(reports_before + reports_html + reports_after, encoding="utf-8")
 
-def main():
+
+def main() -> None:
     copy_site_skeleton()
-    pdfs = collect_pdfs()
-    write_index(pdfs)
+    pdfs, week_failures = collect_pdfs()
+    reports, report_failures = collect_reports()
+    write_index(pdfs, reports)
+
     print(f"Public listo en: {PUBLIC}")
     published = sum(1 for _week, fname in pdfs if fname)
     print(f"PDFs publicados: {published}")
+
+    failures = week_failures + report_failures
+    if failures:
+        details = "\n".join(f"- {failure}" for failure in failures)
+        raise SystemExit(f"Build completed with missing required PDFs:\n{details}")
+
 
 if __name__ == "__main__":
     main()

@@ -14,8 +14,8 @@
         }
         \foreach \c in {#4} {
             \pgfmathsetmacro{\cx}{4.25 + 1.4*\c}
-            \fill[DodgerBlue3, rounded corners=0.08cm] (\cx,#1+0.55) rectangle (\cx+1.15,#1+1.15);
-            \fill[SkyBlue1] (\cx+0.28,#1+1.12) rectangle (\cx+0.68,#1+1.38);
+            \fill[DodgerBlue!80!black, rounded corners=0.08cm] (\cx,#1+0.55) rectangle (\cx+1.15,#1+1.15);
+            \fill[SkyBlue!60] (\cx+0.28,#1+1.12) rectangle (\cx+0.68,#1+1.38);
             \fill[black] (\cx+0.25,#1+0.45) circle (0.08);
             \fill[black] (\cx+0.90,#1+0.45) circle (0.08);
         }

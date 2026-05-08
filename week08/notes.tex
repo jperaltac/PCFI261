@@ -1,0 +1,430 @@
+\input{../latex/preamble-beamer.tex}
+
+\weektitle{08}{Reaccion-difusion y formacion de patrones}
+
+\begin{document}
+
+\frame{\titlepage}
+
+\begin{frame}{Organizacion de la semana}
+\begin{block}{Formato unificado}
+La Semana 08 se divide en \textbf{Clase 1} y \textbf{Clase 2}, manteniendo la estructura habitual del curso:
+\begin{itemize}
+    \item \textbf{30--45 min} de teoria y discusion conceptual.
+    \item \textbf{75--90 min} de laboratorio guiado con Python.
+\end{itemize}
+\end{block}
+
+\vspace{0.2cm}
+\begin{columns}[T,onlytextwidth]
+\column{0.48\textwidth}
+\textbf{Clase 1}
+\begin{itemize}
+    \item ecuacion de difusion y transporte;
+    \item discretizacion espacio-temporal;
+    \item condicion de estabilidad;
+    \item simulacion de difusion 1D y 2D.
+\end{itemize}
+
+\column{0.48\textwidth}
+\textbf{Clase 2}
+\begin{itemize}
+    \item sistemas reaccion-difusion;
+    \item inestabilidad de Turing;
+    \item modelo de Gray--Scott;
+    \item patrones, metricas y exploracion de parametros.
+\end{itemize}
+\end{columns}
+\end{frame}
+
+\section{Clase 1}
+
+\begin{frame}[plain]
+\centering
+\vfill
+{\Huge \bfseries Clase 1}\\[0.4cm]
+{\Large Difusion, discretizacion y simulacion numerica}
+\vfill
+\end{frame}
+
+\begin{frame}{Objetivos de la Clase 1}
+\begin{itemize}
+    \item Entender la difusion como un proceso de suavizado espacial impulsado por gradientes.
+    \item Conectar una ecuacion diferencial parcial con una regla computacional local.
+    \item Implementar un esquema explicito en una dimension y extenderlo a dos dimensiones.
+    \item Discutir el rol del paso temporal y de la malla espacial en la estabilidad numerica.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Motivacion fisica}
+\justifying
+La difusion aparece cuando una cantidad se redistribuye desde regiones donde esta muy concentrada hacia regiones donde esta menos concentrada.
+
+\begin{itemize}
+    \item calor en una barra;
+    \item tinta o contaminantes en un fluido;
+    \item densidad superficial de particulas;
+    \item mezcla y relajacion hacia estados mas uniformes.
+\end{itemize}
+
+\begin{alertblock}{Idea clave}
+La dinamica local depende del entorno cercano: una region con exceso de concentracion tiende a perder material hacia sus vecinos.
+\end{alertblock}
+\end{frame}
+
+\begin{frame}{Ley de Fick y ecuacion de difusion}
+\justifying
+Si $u(x,t)$ representa concentracion, temperatura o densidad, la ley de Fick propone que el flujo es proporcional al gradiente:
+\[
+\bm{J} = -D \nabla u,
+\]
+donde $D$ es el coeficiente de difusion.
+
+Combinando esta ley con conservacion obtenemos
+\[
+\pdv{u}{t} = D \nabla^2 u.
+\]
+
+\begin{block}{Interpretacion}
+El laplaciano compara el valor local con sus alrededores. Si un punto esta muy por encima del promedio de sus vecinos, tendera a disminuir.
+\end{block}
+\end{frame}
+
+\begin{frame}{Caso unidimensional}
+En una dimension, la ecuacion toma la forma
+\[
+\pdv{u}{t} = D \pdv[2]{u}{x}.
+\]
+
+\begin{columns}[T,onlytextwidth]
+\column{0.57\textwidth}
+\begin{itemize}
+    \item si $u(x,t)$ es un pulso angosto, con el tiempo se ensancha;
+    \item la altura maxima disminuye;
+    \item la masa total puede conservarse si no hay flujo por los bordes.
+\end{itemize}
+
+\begin{block}{Pregunta computacional}
+\textquestiondown Como traducimos una derivada espacial a operaciones entre elementos de un arreglo?
+\end{block}
+
+\column{0.38\textwidth}
+\begin{tikzpicture}[scale=0.9]
+\begin{axis}[
+    width=5.0cm,
+    height=4.2cm,
+    xmin=-3,xmax=3,
+    ymin=0,ymax=1.2,
+    axis lines=left,
+    xtick=\empty,
+    ytick=\empty
+]
+\addplot[very thick,MidnightBlue,domain=-3:3,samples=150]{exp(-4*x^2)};
+\addplot[very thick,Crimson,domain=-3:3,samples=150]{0.7*exp(-x^2)};
+\end{axis}
+\end{tikzpicture}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Discretizacion por diferencias finitas}
+\justifying
+Tomamos una grilla uniforme:
+\[
+x_i = i\,\Delta x, \qquad t_n = n\,\Delta t.
+\]
+
+Usamos las aproximaciones
+\[
+\pdv{u}{t} \approx \frac{u_i^{n+1}-u_i^n}{\Delta t},
+\qquad
+\pdv[2]{u}{x} \approx \frac{u_{i+1}^n - 2u_i^n + u_{i-1}^n}{(\Delta x)^2}.
+\]
+
+Entonces el esquema explicito queda
+\[
+u_i^{n+1} = u_i^n + r\left(u_{i+1}^n - 2u_i^n + u_{i-1}^n\right),
+\qquad
+r = \frac{D\,\Delta t}{(\Delta x)^2}.
+\]
+\end{frame}
+
+\begin{frame}{Lectura fisica del esquema}
+\begin{columns}[T,onlytextwidth]
+\column{0.58\textwidth}
+\begin{itemize}
+    \item Si $u_i^n$ es mayor que el promedio de sus vecinos, el termino entre parentesis es negativo.
+    \item Si $u_i^n$ es menor que el promedio de sus vecinos, ese termino es positivo.
+    \item El algoritmo tiende a suavizar gradientes fuertes.
+\end{itemize}
+
+\begin{alertblock}{Mensaje}
+La discretizacion no solo aproxima una ecuacion: tambien define la regla local que implementaremos en el computador.
+\end{alertblock}
+
+\column{0.38\textwidth}
+\begin{tikzpicture}[scale=0.85]
+\foreach \x/\txt in {0/$u_{i-1}^n$,1.4/$u_i^n$,2.8/$u_{i+1}^n$} {
+    \draw[fill=MidnightBlue!10] (\x,0) rectangle ++(1,1);
+    \node at (\x+0.5,0.5) {\small \txt};
+}
+\node at (1.9,-0.6) {\Large $\Downarrow$};
+\draw[fill=Crimson!12] (1.4,-2.0) rectangle ++(1,1);
+\node at (1.9,-1.5) {\small $u_i^{n+1}$};
+\end{tikzpicture}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Estabilidad numerica}
+\justifying
+El esquema explicito es simple y pedagogicamente muy util, pero no acepta cualquier eleccion de $\Delta t$.
+
+\begin{block}{Resultado practico en 1D}
+Para evitar inestabilidades, conviene exigir
+\[
+r=\frac{D\,\Delta t}{(\Delta x)^2} \le \frac{1}{2}.
+\]
+\end{block}
+
+\begin{itemize}
+    \item Si $r$ es demasiado grande, la simulacion puede oscilar y explotar numericamente.
+    \item Si $r$ es muy pequeno, la simulacion sera estable pero puede ser lenta.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Condiciones de borde}
+\begin{itemize}
+    \item \textbf{Dirichlet}: fijamos el valor de $u$ en los extremos.
+    \item \textbf{Neumann}: fijamos el flujo, por ejemplo flujo nulo.
+    \item \textbf{Periodicas}: el extremo izquierdo se conecta con el derecho.
+\end{itemize}
+
+\begin{block}{Eleccion pedagogica}
+En esta semana es muy comodo usar bordes periodicos o flujo nulo, porque permiten concentrarse en la dinamica interna sin demasiadas complicaciones adicionales.
+\end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Codigo base: difusion 1D}
+\inputminted[firstline=1,lastline=52]{python}{codes/diffusion_1d.py}
+\end{frame}
+
+\begin{frame}{Que esperar al correr el ejemplo 1D}
+\begin{itemize}
+    \item el perfil inicial se suaviza con el tiempo;
+    \item el pico central disminuye;
+    \item el ancho caracteristico aumenta;
+    \item si el esquema es estable, la evolucion es suave y no aparecen oscilaciones espurias.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{De una dimension a dos dimensiones}
+En 2D, la ecuacion es
+\[
+\pdv{u}{t} = D\left(\pdv[2]{u}{x} + \pdv[2]{u}{y}\right).
+\]
+
+El laplaciano discreto de cinco puntos es
+\[
+\nabla^2 u_{ij} \approx
+\frac{u_{i+1,j}+u_{i-1,j}+u_{i,j+1}+u_{i,j-1}-4u_{ij}}{(\Delta x)^2}.
+\]
+
+\begin{block}{Comentario}
+El paso conceptual es muy parecido al caso 1D: cambia la geometria del vecindario, no la idea central.
+\end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Codigo base: difusion 2D}
+\inputminted[firstline=1,lastline=44]{python}{codes/diffusion_2d.py}
+\end{frame}
+
+\begin{frame}{Actividades propuestas para la Clase 1}
+\begin{enumerate}
+    \item Simular un pulso gaussiano 1D y comparar perfiles en distintos tiempos.
+    \item Verificar empiricamente que un paso temporal demasiado grande vuelve inestable el esquema.
+    \item Simular una mancha inicial 2D y observar su expansion.
+    \item Medir una magnitud simple, por ejemplo el maximo de $u$ o la varianza espacial, como funcion del tiempo.
+\end{enumerate}
+
+\begin{block}{Entregable sugerido}
+Script o notebook con el codigo, dos o tres graficos bien rotulados y una breve discusion sobre estabilidad y suavizado.
+\end{block}
+\end{frame}
+
+\begin{frame}{Cierre Clase 1}
+\begin{itemize}
+    \item La difusion es un ejemplo directo de como una ley continua se vuelve una regla local en una malla.
+    \item La estabilidad numerica no es un detalle tecnico: determina si la simulacion representa o no al sistema fisico.
+    \item El paso natural siguiente es agregar reaccion local, es decir, produccion y destruccion de especies.
+\end{itemize}
+\end{frame}
+
+\section{Clase 2}
+
+\begin{frame}[plain]
+\centering
+\vfill
+{\Huge \bfseries Clase 2}\\[0.4cm]
+{\Large Reaccion-difusion, inestabilidad de Turing y patrones}
+\vfill
+\end{frame}
+
+\begin{frame}{Objetivos de la Clase 2}
+\begin{itemize}
+    \item Entender que la combinacion de reaccion local y transporte puede producir patrones espaciales estables.
+    \item Presentar la idea de inestabilidad de Turing sin sobrecargar el formalismo.
+    \item Implementar una version discreta del modelo de Gray--Scott.
+    \item Explorar parametros y medir rasgos cuantitativos simples de los patrones generados.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{De difusion a reaccion-difusion}
+\justifying
+Si ahora consideramos dos campos, por ejemplo $u(\bm{x},t)$ y $v(\bm{x},t)$, podemos combinar:
+
+\begin{itemize}
+    \item \textbf{difusion}: mezcla espacial;
+    \item \textbf{reaccion}: conversion local entre especies;
+    \item \textbf{alimentacion o perdida}: intercambio con el entorno.
+\end{itemize}
+
+La estructura general es
+\[
+\pdv{u}{t} = D_u \nabla^2 u + f(u,v),
+\qquad
+\pdv{v}{t} = D_v \nabla^2 v + g(u,v).
+\]
+\end{frame}
+
+\begin{frame}{Idea de Turing}
+\justifying
+Alan Turing mostro que un estado uniforme puede ser estable frente a perturbaciones locales cuando no hay espacio, pero volverse inestable al combinarse con difusion.
+
+\begin{block}{Interpretacion fisica}
+La difusion no siempre destruye estructura. Si dos especies difunden a ritmos distintos y reaccionan entre si, puede amplificar ciertas escalas espaciales y producir bandas, manchas o laberintos.
+\end{block}
+
+\begin{itemize}
+    \item no es necesario entrar en toda la teoria lineal para usarlo pedagogicamente;
+    \item basta con entender que reaccion + transporte puede generar patron.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Modelo de Gray--Scott}
+Una forma muy usada en docencia y simulacion visual es
+\begin{align*}
+\pdv{u}{t} &= D_u \nabla^2 u - uv^2 + F(1-u), \\
+\pdv{v}{t} &= D_v \nabla^2 v + uv^2 - (F+k)v.
+\end{align*}
+
+\begin{itemize}
+    \item $u$ se alimenta desde el entorno;
+    \item $v$ se consume y decae;
+    \item el termino $uv^2$ acopla no linealmente ambas especies.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Lectura cualitativa de los terminos}
+\begin{columns}[T,onlytextwidth]
+\column{0.58\textwidth}
+\begin{itemize}
+    \item $D_u \nabla^2 u$, $D_v \nabla^2 v$: suavizan gradientes.
+    \item $-uv^2$: consume $u$ donde hay suficiente $v$.
+    \item $+uv^2$: produce $v$ de forma autocatalitica.
+    \item $F(1-u)$: repone $u$.
+    \item $-(F+k)v$: retira $v$ del sistema.
+\end{itemize}
+
+\begin{alertblock}{Mensaje}
+El patron no viene dibujado en la ecuacion. Aparece por la competencia entre mezcla, produccion y disipacion.
+\end{alertblock}
+
+\column{0.36\textwidth}
+\begin{tikzpicture}[scale=0.92]
+\node[draw,rounded corners,fill=MidnightBlue!10,minimum width=2.6cm,minimum height=0.9cm] (u) at (0,1.3) {$u$};
+\node[draw,rounded corners,fill=Crimson!10,minimum width=2.6cm,minimum height=0.9cm] (v) at (0,-1.0) {$v$};
+\draw[->,thick] (-2.2,1.3) -- (u) node[midway,above] {\small feed};
+\draw[->,thick] (u) -- node[right] {\small $uv^2$} (v);
+\draw[->,thick] (2.0,-1.0) -- (v) node[midway,above] {\small salida};
+\end{tikzpicture}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Discretizacion computacional}
+\justifying
+La implementacion mas directa usa:
+\begin{itemize}
+    \item una malla 2D;
+    \item un laplaciano discreto;
+    \item actualizacion explicita para $u$ y $v$;
+    \item una perturbacion local inicial para romper la uniformidad.
+\end{itemize}
+
+\begin{block}{Buena practica}
+Separar el calculo del laplaciano y la actualizacion facilita luego cambiar parametros, condiciones de borde o el modelo de reaccion.
+\end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Codigo base: Gray--Scott en 2D}
+\inputminted[firstline=1,lastline=77]{python}{codes/gray_scott.py}
+\end{frame}
+
+\begin{frame}{Exploracion de parametros}
+\begin{itemize}
+    \item Cambios pequenos en $(F,k)$ pueden cambiar mucho la morfologia.
+    \item Algunos parametros producen manchas aisladas.
+    \item Otros producen bandas, laberintos o patrones mas granulados.
+    \item La resolucion espacial y el tiempo total de integracion tambien importan.
+\end{itemize}
+
+\begin{block}{Actividad natural}
+Construir una pequena tabla de experimentos y describir visualmente el patron obtenido en cada caso.
+\end{block}
+\end{frame}
+
+\begin{frame}{Mas alla de mirar imagenes}
+\justifying
+Un curso de modelacion computacional gana mucho cuando no se queda solo en la visualizacion. Tambien conviene medir.
+
+\begin{itemize}
+    \item fraccion del dominio donde $v$ supera cierto umbral;
+    \item promedio y desviacion estandar de $u$ o $v$;
+    \item longitud caracteristica estimada desde un perfil o una autocorrelacion simple;
+    \item evolucion temporal de la varianza espacial.
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Codigo de apoyo: metricas simples del patron}
+\inputminted[firstline=1,lastline=30]{python}{codes/pattern_metrics.py}
+\end{frame}
+
+\begin{frame}{Actividades propuestas para la Clase 2}
+\begin{enumerate}
+    \item Simular Gray--Scott para un conjunto pequeno de pares $(F,k)$.
+    \item Comparar visualmente al menos dos patrones distintos.
+    \item Medir la fraccion activa y la desviacion estandar de $v$ en cada caso.
+    \item Discutir si el patron parece converger a una estructura estable, oscilatoria o transitoria.
+    \item Desafio: probar una condicion inicial distinta y comparar el resultado.
+\end{enumerate}
+
+\begin{block}{Entregable sugerido}
+Script o notebook con imagenes, tabla corta de parametros y una interpretacion fisica/computacional del patron observado.
+\end{block}
+\end{frame}
+
+\begin{frame}{Conexiones con el resto del curso}
+\begin{itemize}
+    \item Como en Ising y autómatas celulares, aparecen patrones globales desde reglas locales.
+    \item Como en dinamica molecular y Monte Carlo, el algoritmo y la discretizacion afectan el resultado.
+    \item Como antes del bloque de IA, esta semana deja un conjunto de datos espaciales ideal para futuras tareas de clasificacion, reduccion o aprendizaje de patrones.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Cierre de la semana}
+\begin{itemize}
+    \item La reaccion-difusion muestra una forma muy rica de emergencia en sistemas continuos.
+    \item Una discretizacion simple basta para producir experimentos computacionales muy expresivos.
+    \item La Semana 08 cierra bien la unidad al combinar EDPs, simulacion 2D, estabilidad, visualizacion y analisis cuantitativo.
+\end{itemize}
+\end{frame}
+
+\end{document}

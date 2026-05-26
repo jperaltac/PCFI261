@@ -1,0 +1,3 @@
+https://keras.io/guides/sequential_model/
+https://www.tensorflow.org/tutorials/keras/classification
+https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html

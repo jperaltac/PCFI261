@@ -58,6 +58,8 @@ La Semana 09 se divide en \textbf{Clase 1} y \textbf{Clase 2}, manteniendo la es
 \end{frame}
 
 \begin{frame}{Por que aparece deep learning en PCFI261}
+\begin{columns}[T,onlytextwidth]
+\column{0.56\textwidth}
 \justifying
 En muchos problemas cientificos modernos los datos ya no vienen como una tabla pequeña y limpia, sino como:
 \begin{itemize}
@@ -66,6 +68,16 @@ En muchos problemas cientificos modernos los datos ya no vienen como una tabla p
     \item imagenes, mapas o cubos de simulacion;
     \item salidas de modelos numericos de alta dimension.
 \end{itemize}
+
+\begin{block}{Lectura pedagogica}
+El salto importante no es solo usar una red, sino pasar de reglas explicitamente programadas a modelos que ajustan su representacion usando datos.
+\end{block}
+
+\column{0.40\textwidth}
+\begin{center}
+\includegraphics[width=\linewidth]{Figuras/washing.jpeg}
+\end{center}
+\end{columns}
 
 \begin{alertblock}{Idea clave}
 Deep learning es util cuando queremos que el modelo aprenda representaciones internas a partir de datos ricos, sin depender por completo de una ingenieria manual de variables.
@@ -110,6 +122,8 @@ Deep learning es util cuando queremos que el modelo aprenda representaciones int
 \end{frame}
 
 \begin{frame}{Una capa densa como operacion matematica}
+\begin{columns}[T,onlytextwidth]
+\column{0.56\textwidth}
 \justifying
 Una capa densa recibe un vector de entrada $\bm{x}\in\mathbb{R}^{n}$ y produce
 \[
@@ -125,6 +139,12 @@ donde:
 \begin{block}{Lectura computacional}
 Cada capa toma un arreglo, mezcla sus componentes mediante una transformacion lineal y luego aplica una no linealidad que permite representar relaciones mas complejas.
 \end{block}
+
+\column{0.40\textwidth}
+\begin{center}
+\includegraphics[width=\linewidth]{Figuras/simplenn.png}
+\end{center}
+\end{columns}
 \end{frame}
 
 \begin{frame}{Tensores, shapes y tipos de salida}
@@ -156,7 +176,7 @@ Cada capa toma un arreglo, mezcla sus componentes mediante una transformacion li
 
 \begin{frame}{Activaciones y funcion de perdida}
 \begin{columns}[T,onlytextwidth]
-\column{0.48\textwidth}
+\column{0.40\textwidth}
 \begin{block}{Activaciones frecuentes}
 \begin{itemize}
     \item \textbf{ReLU}: rapida y efectiva en capas ocultas.
@@ -165,7 +185,12 @@ Cada capa toma un arreglo, mezcla sus componentes mediante una transformacion li
 \end{itemize}
 \end{block}
 
-\column{0.48\textwidth}
+\column{0.28\textwidth}
+\begin{center}
+\includegraphics[width=\linewidth]{Figuras/activation.png}
+\end{center}
+
+\column{0.28\textwidth}
 \begin{block}{Perdidas frecuentes}
 \begin{itemize}
     \item \textbf{binary crossentropy} para dos clases;
@@ -294,12 +319,16 @@ Guardar el preprocesamiento y el umbral de decision junto con el modelo evita qu
 \end{block}
 \end{frame}
 
-\begin{frame}[fragile]{Codigo principal: entrenamiento del modelo}
-\inputminted[firstline=1,lastline=78,fontsize=\tiny]{python}{codes/stellar_catalog_mlp.py}
+\begin{frame}[fragile]{Codigo principal: datos y particion}
+\inputminted[firstline=8,lastline=43,fontsize=\tiny]{python}{codes/stellar_catalog_mlp.py}
+\end{frame}
+
+\begin{frame}[fragile]{Codigo principal: arquitectura y entrenamiento}
+\inputminted[firstline=45,lastline=77,fontsize=\tiny]{python}{codes/stellar_catalog_mlp.py}
 \end{frame}
 
 \begin{frame}[fragile]{Codigo principal: evaluacion y diagnostico}
-\inputminted[firstline=79,lastline=137,fontsize=\tiny]{python}{codes/stellar_catalog_mlp.py}
+\inputminted[firstline=79,lastline=96,fontsize=\tiny]{python}{codes/stellar_catalog_mlp.py}
 \end{frame}
 
 \begin{frame}{Que deberiamos mirar en los resultados}

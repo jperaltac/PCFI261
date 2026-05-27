@@ -1,23 +1,51 @@
-print("Resumen comparativo")
-print("-" * 40)
-print(f"Accuracy test modelo lineal    : {test_acc_linear:.4f}")
-print(f"Accuracy test modelo no lineal : {test_acc_nl:.4f}")
+nonlinear_model = keras.Sequential([
+    layers.Input(shape=(2,)),
+    layers.Dense(16, activation="tanh"),
+    layers.Dense(16, activation="tanh"),
+    layers.Dense(1, activation="sigmoid")
+])
 
-y_pred_prob = nonlinear_model.predict(X_test_scaled, verbose=0).ravel()
-y_pred = (y_pred_prob >= 0.5).astype(int)
+nonlinear_model.compile(
+    optimizer=keras.optimizers.Adam(learning_rate=0.01),
+    loss="binary_crossentropy",
+    metrics=["accuracy"]
+)
 
-print("Matriz de confusión")
-print(confusion_matrix(y_test, y_pred))
+nonlinear_model.summary()
 
-print("\nReporte de clasificación")
-print(classification_report(y_test, y_pred, digits=4))
+plot_keras_architecture(
+    nonlinear_model,
+    input_dim=2,
+    title="Arquitectura de la red neuronal no lineal",
+    max_neurons=16
+)
 
-indices = np.random.choice(len(X_test), size=10, replace=False)
+history_nonlinear = nonlinear_model.fit(
+    X_train_scaled, y_train,
+    validation_data=(X_val_scaled, y_val),
+    epochs=300,
+    batch_size=32,
+    verbose=0,
+    callbacks=[early_stopping]
+)
 
-for idx in indices:
-    x_original = X_test[idx]
-    x_scaled = X_test_scaled[idx:idx+1]
-    prob = nonlinear_model.predict(x_scaled, verbose=0)[0, 0]
-    pred = int(prob >= 0.5)
-    truth = int(y_test[idx])
-    print(f"x = {x_original}, prob(clase 1) = {prob:.3f}, pred = {pred}, real = {truth}")
+plot_history(history_nonlinear, title="Red neuronal no lineal")
+
+plot_keras_weight_heatmaps(
+    nonlinear_model,
+    title="Pesos aprendidos por la red no lineal"
+)
+
+plot_hidden_neuron_maps(
+    nonlinear_model,
+    X_test,
+    layer_index=0,
+    neurons=(0, 1, 2, 3),
+    title="Activaciones de neuronas de la primera capa oculta"
+)
+
+test_loss_nl, test_acc_nl = nonlinear_model.evaluate(X_test_scaled, y_test, verbose=0)
+print(f"Loss test (no lineal): {test_loss_nl:.4f}")
+print(f"Accuracy test (no lineal): {test_acc_nl:.4f}")
+
+plot_decision_boundary(nonlinear_model, X_test, y_test, title="Red no lineal sobre datos de prueba")

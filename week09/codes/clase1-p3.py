@@ -21,7 +21,6 @@ def plot_history(history, title="Historia de entrenamiento"):
     plt.tight_layout()
     plt.show()
 
-
 def plot_decision_boundary(model, X_plot, y_plot, title="Frontera de decisión"):
     x_min, x_max = X_plot[:, 0].min() - 0.8, X_plot[:, 0].max() + 0.8
     y_min, y_max = X_plot[:, 1].min() - 0.8, X_plot[:, 1].max() + 0.8

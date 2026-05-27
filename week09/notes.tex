@@ -2,10 +2,21 @@
 
 \weektitle{09}{aprendizaje profundo para datos cientificos}
 \titlegraphic{}
+\title[PCFI261 -- Semana 09]{\Large Modelos Computacionales PCFI261\\Semana 09: aprendizaje profundo\\para datos cientificos}
+\newcommand{\compactcode}{\fontsize{5}{4.7}\selectfont}
 
 \begin{document}
 
-\frame{\titlepage}
+\begin{frame}[plain]
+\centering
+\vfill
+{\Large\bfseries Modelos Computacionales PCFI261}\\[0.25cm]
+{\large Semana 09: aprendizaje profundo\\para datos cientificos}\\[0.7cm]
+{\large Joaquín Peralta}\\[0.15cm]
+{\small \texttt{joaquin.peralta@unab.cl}}\\[0.35cm]
+{\small Universidad Andrés Bello}
+\vfill
+\end{frame}
 
 \begin{frame}{Organizacion de la semana}
 \begin{block}{Formato unificado}
@@ -59,66 +70,61 @@ La Semana 09 se divide en \textbf{Clase 1} y \textbf{Clase 2}, manteniendo la es
 
 \begin{frame}{Por que aparece deep learning en PCFI261}
 \begin{columns}[T,onlytextwidth]
-\column{0.56\textwidth}
+\column{0.58\textwidth}
 \justifying
-En muchos problemas cientificos modernos los datos ya no vienen como una tabla pequeña y limpia, sino como:
+En muchos problemas cientificos modernos los datos suelen ser:
 \begin{itemize}
-    \item series de tiempo fotometricas;
-    \item espectros con cientos o miles de canales;
-    \item imagenes, mapas o cubos de simulacion;
-    \item salidas de modelos numericos de alta dimension.
+    \item series de tiempo;
+    \item espectros con muchos canales;
+    \item imagenes, mapas o cubos;
+    \item simulaciones de alta dimension.
 \end{itemize}
 
 \begin{block}{Lectura pedagogica}
-El salto importante no es solo usar una red, sino pasar de reglas explicitamente programadas a modelos que ajustan su representacion usando datos.
+El salto no es ``usar una red'', sino permitir que el modelo aprenda parte de la representacion desde los datos.
 \end{block}
 
-\column{0.40\textwidth}
+\column{0.38\textwidth}
 \begin{center}
-\includegraphics[width=\linewidth]{Figuras/washing.jpeg}
+\includegraphics[width=0.88\linewidth]{Figuras/washing.jpeg}
 \end{center}
-\end{columns}
 
 \begin{alertblock}{Idea clave}
-Deep learning es util cuando queremos que el modelo aprenda representaciones internas a partir de datos ricos, sin depender por completo de una ingenieria manual de variables.
+Deep learning reduce la dependencia de features diseñadas a mano.
 \end{alertblock}
+\end{columns}
 \end{frame}
 
 \begin{frame}{ML clasico versus deep learning}
+\small
 \begin{columns}[T,onlytextwidth]
-\column{0.52\textwidth}
-\begin{block}{Pipeline clasico}
-\begin{enumerate}
-    \item elegir variables resumen;
-    \item escalar y limpiar;
-    \item entrenar un modelo relativamente simple;
-    \item evaluar y reinterpretar.
-\end{enumerate}
+\column{0.48\textwidth}
+\begin{block}{Machine learning clasico}
+\begin{itemize}
+    \item La persona define las \textbf{features}: amplitud, pendiente, color, S/N, etc.
+    \item El modelo aprende una regla usando esas variables.
+    \item Suele funcionar bien con tablas pequeñas o medianas.
+\end{itemize}
 \end{block}
 
-\begin{block}{Pipeline profundo}
-\begin{enumerate}
-    \item preparar datos y etiquetas;
-    \item definir arquitectura;
-    \item entrenar capas que aprenden representaciones;
-    \item diagnosticar generalizacion.
-\end{enumerate}
+\column{0.48\textwidth}
+\begin{block}{Deep learning}
+\begin{itemize}
+    \item La red aprende \textbf{representaciones internas} en varias capas.
+    \item Las primeras capas detectan patrones simples; las siguientes combinan patrones.
+    \item Es mas util con datos ricos: imagenes, espectros o series largas.
+\end{itemize}
 \end{block}
-
-\column{0.44\textwidth}
-\begin{tikzpicture}[>=latex,scale=0.9]
-\node[draw,rounded corners,fill=MidnightBlue!8,minimum width=3.4cm,minimum height=0.7cm] (d1) at (0,2.8) {datos crudos};
-\node[draw,rounded corners,fill=MidnightBlue!8,minimum width=3.4cm,minimum height=0.7cm] (d2) at (0,1.7) {features manuales};
-\node[draw,rounded corners,fill=MidnightBlue!8,minimum width=3.4cm,minimum height=0.7cm] (d3) at (0,0.6) {modelo clasico};
-\node[draw,rounded corners,fill=Crimson!10,minimum width=3.4cm,minimum height=0.7cm] (e2) at (0,-1.0) {capas ocultas};
-\node[draw,rounded corners,fill=Crimson!10,minimum width=3.4cm,minimum height=0.7cm] (e1) at (0,-2.1) {datos crudos};
-\node[draw,rounded corners,fill=Crimson!10,minimum width=3.4cm,minimum height=0.7cm] (e3) at (0,-3.2) {prediccion};
-\draw[->,thick] (d1) -- (d2);
-\draw[->,thick] (d2) -- (d3);
-\draw[->,thick] (e1) -- (e2);
-\draw[->,thick] (e2) -- (e3);
-\end{tikzpicture}
 \end{columns}
+
+\vspace{0.15cm}
+\begin{alertblock}{Diferencia central}
+En ML clasico diseñamos la representacion antes de entrenar. En DL entrenamos tambien la representacion, no solo el clasificador o regresor final.
+\end{alertblock}
+
+\begin{block}{Regla practica}
+Si ya tenemos buenas variables fisicas resumidas, ML clasico puede bastar. Si la informacion esta escondida en datos de alta dimension, DL puede aportar mas.
+\end{block}
 \end{frame}
 
 \begin{frame}{Una capa densa como operacion matematica}
@@ -158,7 +164,7 @@ Cada capa toma un arreglo, mezcla sus componentes mediante una transformacion li
 \end{itemize}
 
 \column{0.42\textwidth}
-\begin{tikzpicture}[scale=0.95]
+\begin{tikzpicture}[scale=0.78]
 \foreach \y in {0,0.5,1.0,1.5} {
   \foreach \x in {0,0.5,1.0,1.5} {
     \draw[fill=MidnightBlue!10] (\x,\y) rectangle +(0.4,0.4);
@@ -320,11 +326,11 @@ Guardar el preprocesamiento y el umbral de decision junto con el modelo evita qu
 \end{frame}
 
 \begin{frame}[fragile]{Codigo principal: datos y particion}
-\inputminted[firstline=8,lastline=43,fontsize=\tiny]{python}{codes/stellar_catalog_mlp.py}
+\inputminted[firstline=8,lastline=43,fontsize=\compactcode]{python}{codes/stellar_catalog_mlp.py}
 \end{frame}
 
 \begin{frame}[fragile]{Codigo principal: arquitectura y entrenamiento}
-\inputminted[firstline=45,lastline=77,fontsize=\tiny]{python}{codes/stellar_catalog_mlp.py}
+\inputminted[firstline=45,lastline=77,fontsize=\compactcode]{python}{codes/stellar_catalog_mlp.py}
 \end{frame}
 
 \begin{frame}[fragile]{Codigo principal: evaluacion y diagnostico}

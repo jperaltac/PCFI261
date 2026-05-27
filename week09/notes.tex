@@ -127,6 +127,66 @@ Si ya tenemos buenas variables fisicas resumidas, ML clasico puede bastar. Si la
 \end{block}
 \end{frame}
 
+\begin{frame}{Ejemplo representativo: machine learning clasico}
+\small
+\begin{columns}[T,onlytextwidth]
+\column{0.50\textwidth}
+\justifying
+Supongamos un catalogo astronomico donde cada objeto ya fue resumido por variables fisicas o observacionales:
+\begin{itemize}
+    \item magnitud aparente;
+    \item color o indice espectral;
+    \item razon señal/ruido;
+    \item tamaño aparente o concentracion de luz.
+\end{itemize}
+
+\begin{block}{Idea}
+El aprendizaje ocurre sobre una tabla de \textbf{features diseñadas antes} del modelo.
+\end{block}
+
+\column{0.46\textwidth}
+\begin{tikzpicture}[>=latex,scale=0.88,transform shape]
+\node[draw,rounded corners,fill=MidnightBlue!8,minimum width=3.2cm,minimum height=0.70cm] (catalogo) at (0,2.5) {catalogo};
+\node[draw,rounded corners,fill=MidnightBlue!8,minimum width=3.2cm,minimum height=0.70cm] (features) at (0,1.35) {features manuales};
+\node[draw,rounded corners,fill=MidnightBlue!8,minimum width=3.2cm,minimum height=0.70cm] (modelo) at (0,0.20) {SVM / random forest};
+\node[draw,rounded corners,fill=Crimson!10,minimum width=3.2cm,minimum height=0.70cm] (salida) at (0,-0.95) {estrella o galaxia};
+\draw[->,thick] (catalogo) -- (features);
+\draw[->,thick] (features) -- (modelo);
+\draw[->,thick] (modelo) -- (salida);
+
+\node[font=\tiny,align=left] at (0,-2.0) {
+\begin{tabular}{lcccc}
+objeto & mag & color & S/N & tam.\\
+A & 17.2 & 0.4 & 35 & 0.8\\
+B & 20.1 & 1.1 & 12 & 2.4\\
+C & 18.6 & 0.7 & 28 & 1.2
+\end{tabular}
+};
+\end{tikzpicture}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Ejemplo representativo: deep learning}
+\small
+\begin{center}
+\includegraphics[width=0.86\linewidth]{Figuras/cnn-commons.png}
+\end{center}
+\vspace{-0.15cm}
+\begin{columns}[T,onlytextwidth]
+\column{0.50\textwidth}
+\begin{block}{Entrada}
+Imagen cruda: pixeles de un gato, un perro, una galaxia o una simulacion.
+\end{block}
+
+\column{0.46\textwidth}
+\begin{alertblock}{Aprendizaje}
+Las capas aprenden bordes, texturas y formas; el modelo decide la clase final.
+\end{alertblock}
+\end{columns}
+\vspace{0.05cm}
+{\tiny Figura CNN: Irisbox, Wikimedia Commons, CC BY 4.0.}
+\end{frame}
+
 \begin{frame}{Una capa densa como operacion matematica}
 \begin{columns}[T,onlytextwidth]
 \column{0.56\textwidth}

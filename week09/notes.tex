@@ -12,9 +12,9 @@
 \vfill
 {\Large\bfseries Modelos Computacionales PCFI261}\\[0.25cm]
 {\large Semana 09: aprendizaje profundo\\para datos cientificos}\\[0.7cm]
-{\large Joaquín Peralta}\\[0.15cm]
+{\large Joaquin Peralta}\\[0.15cm]
 {\small \texttt{joaquin.peralta@unab.cl}}\\[0.35cm]
-{\small Universidad Andrés Bello}
+{\small Universidad Andres Bello}
 \vfill
 \end{frame}
 
@@ -27,24 +27,22 @@ La Semana 09 se divide en \textbf{Clase 1} y \textbf{Clase 2}, manteniendo la es
 \end{itemize}
 \end{block}
 
-\vspace{0.2cm}
 \begin{columns}[T,onlytextwidth]
 \column{0.48\textwidth}
 \textbf{Clase 1}
 \begin{itemize}
-    \item que problema resuelve el deep learning;
-    \item representacion de datos, capas y activaciones;
-    \item entrenamiento, funcion de perdida y optimizacion;
-    \item sobreajuste, particion de datos y escalamiento.
+    \item capas densas, activaciones y perdida;
+    \item entrenamiento, validacion y test;
+    \item sobreajuste, subajuste y escalamiento.
 \end{itemize}
 
 \column{0.48\textwidth}
 \textbf{Clase 2}
 \begin{itemize}
-    \item flujo completo con \texttt{tensorflow.keras};
-    \item ejemplo autocontenido con un catalogo sintetico;
-    \item diagnostico del entrenamiento y decisiones de modelado;
-    \item actividades para extender el modelo a problemas del curso.
+    \item caso Pima Indians Diabetes;
+    \item redes con menos y mas neuronas;
+    \item umbrales, matriz de confusion y AUC;
+    \item prediccion exploratoria para un caso nuevo.
 \end{itemize}
 \end{columns}
 \end{frame}
@@ -61,264 +59,35 @@ La Semana 09 se divide en \textbf{Clase 1} y \textbf{Clase 2}, manteniendo la es
 
 \begin{frame}{Objetivos de la Clase 1}
 \begin{itemize}
-    \item Distinguir entre \textbf{machine learning clasico} y \textbf{deep learning} en el contexto de datos cientificos.
-    \item Interpretar una red neuronal densa como una composicion de transformaciones lineales y no lineales.
-    \item Entender el rol de \textbf{features}, \textbf{normalizacion}, \textbf{funcion de perdida} y \textbf{optimizador}.
-    \item Identificar sintomas de subajuste y sobreajuste antes de entrenar modelos mas grandes.
+    \item Distinguir entre machine learning clasico y deep learning.
+    \item Interpretar una red neuronal densa como composicion de transformaciones lineales y no lineales.
+    \item Entender el rol de features, normalizacion, funcion de perdida y optimizador.
+    \item Identificar sintomas de subajuste y sobreajuste.
 \end{itemize}
-\end{frame}
-
-\begin{frame}{Por que aparece deep learning en PCFI261}
-\begin{columns}[T,onlytextwidth]
-\column{0.58\textwidth}
-\justifying
-En muchos problemas cientificos modernos los datos suelen ser:
-\begin{itemize}
-    \item series de tiempo;
-    \item espectros con muchos canales;
-    \item imagenes, mapas o cubos;
-    \item simulaciones de alta dimension.
-\end{itemize}
-
-\begin{block}{Lectura pedagogica}
-El salto no es ``usar una red'', sino permitir que el modelo aprenda parte de la representacion desde los datos.
-\end{block}
-
-\column{0.38\textwidth}
-\begin{center}
-\includegraphics[width=0.88\linewidth]{Figuras/washing.jpeg}
-\end{center}
-
-\begin{alertblock}{Idea clave}
-Deep learning reduce la dependencia de features diseñadas a mano.
-\end{alertblock}
-\end{columns}
-\end{frame}
-
-\begin{frame}{ML clasico versus deep learning}
-\small
-\begin{columns}[T,onlytextwidth]
-\column{0.48\textwidth}
-\begin{block}{Machine learning clasico}
-\begin{itemize}
-    \item La persona define las \textbf{features}: amplitud, pendiente, color, S/N, etc.
-    \item El modelo aprende una regla usando esas variables.
-    \item Suele funcionar bien con tablas pequeñas o medianas.
-\end{itemize}
-\end{block}
-
-\column{0.48\textwidth}
-\begin{block}{Deep learning}
-\begin{itemize}
-    \item La red aprende \textbf{representaciones internas} en varias capas.
-    \item Las primeras capas detectan patrones simples; las siguientes combinan patrones.
-    \item Es mas util con datos ricos: imagenes, espectros o series largas.
-\end{itemize}
-\end{block}
-\end{columns}
-
-\vspace{0.15cm}
-\begin{alertblock}{Diferencia central}
-En ML clasico diseñamos la representacion antes de entrenar. En DL entrenamos tambien la representacion, no solo el clasificador o regresor final.
-\end{alertblock}
-
-\begin{block}{Regla practica}
-Si ya tenemos buenas variables fisicas resumidas, ML clasico puede bastar. Si la informacion esta escondida en datos de alta dimension, DL puede aportar mas.
-\end{block}
-\end{frame}
-
-\begin{frame}{Ejemplo representativo: machine learning clasico}
-\small
-\begin{columns}[T,onlytextwidth]
-\column{0.50\textwidth}
-\justifying
-Supongamos un catalogo astronomico donde cada objeto ya fue resumido por variables fisicas o observacionales:
-\begin{itemize}
-    \item magnitud aparente;
-    \item color o indice espectral;
-    \item razon señal/ruido;
-    \item tamaño aparente o concentracion de luz.
-\end{itemize}
-
-\begin{block}{Idea}
-El aprendizaje ocurre sobre una tabla de \textbf{features diseñadas antes} del modelo.
-\end{block}
-
-\column{0.46\textwidth}
-\begin{tikzpicture}[>=latex,scale=0.88,transform shape]
-\node[draw,rounded corners,fill=MidnightBlue!8,minimum width=3.2cm,minimum height=0.70cm] (catalogo) at (0,2.5) {catalogo};
-\node[draw,rounded corners,fill=MidnightBlue!8,minimum width=3.2cm,minimum height=0.70cm] (features) at (0,1.35) {features manuales};
-\node[draw,rounded corners,fill=MidnightBlue!8,minimum width=3.2cm,minimum height=0.70cm] (modelo) at (0,0.20) {SVM / random forest};
-\node[draw,rounded corners,fill=Crimson!10,minimum width=3.2cm,minimum height=0.70cm] (salida) at (0,-0.95) {estrella o galaxia};
-\draw[->,thick] (catalogo) -- (features);
-\draw[->,thick] (features) -- (modelo);
-\draw[->,thick] (modelo) -- (salida);
-
-\node[font=\tiny,align=left] at (0,-2.0) {
-\begin{tabular}{lcccc}
-objeto & mag & color & S/N & tam.\\
-A & 17.2 & 0.4 & 35 & 0.8\\
-B & 20.1 & 1.1 & 12 & 2.4\\
-C & 18.6 & 0.7 & 28 & 1.2
-\end{tabular}
-};
-\end{tikzpicture}
-\end{columns}
-\end{frame}
-
-\begin{frame}{Ejemplo representativo: deep learning}
-\small
-\begin{center}
-\includegraphics[width=0.86\linewidth]{Figuras/cnn-commons.png}
-\end{center}
-\vspace{-0.15cm}
-\begin{columns}[T,onlytextwidth]
-\column{0.50\textwidth}
-\begin{block}{Entrada}
-Imagen cruda: pixeles de un gato, un perro, una galaxia o una simulacion.
-\end{block}
-
-\column{0.46\textwidth}
-\begin{alertblock}{Aprendizaje}
-Las capas aprenden bordes, texturas y formas; el modelo decide la clase final.
-\end{alertblock}
-\end{columns}
-\vspace{0.05cm}
-{\tiny Figura CNN: Irisbox, Wikimedia Commons, CC BY 4.0.}
 \end{frame}
 
 \begin{frame}{Una capa densa como operacion matematica}
-\begin{columns}[T,onlytextwidth]
-\column{0.56\textwidth}
-\justifying
 Una capa densa recibe un vector de entrada $\bm{x}\in\mathbb{R}^{n}$ y produce
 \[
-\bm{h} = \phi(W\bm{x} + \bm{b}),
+\bm{h}=\phi(W\bm{x}+\bm{b}),
 \]
-donde:
-\begin{itemize}
-    \item $W$ es una matriz de pesos;
-    \item $\bm{b}$ es un vector de sesgos;
-    \item $\phi$ es una funcion de activacion, por ejemplo ReLU o sigmoide.
-\end{itemize}
+donde $W$ contiene pesos, $\bm{b}$ contiene sesgos y $\phi$ es una activacion no lineal.
 
 \begin{block}{Lectura computacional}
-Cada capa toma un arreglo, mezcla sus componentes mediante una transformacion lineal y luego aplica una no linealidad que permite representar relaciones mas complejas.
+Cada capa mezcla componentes del arreglo de entrada y aplica una no linealidad. Al encadenar capas, la red aprende representaciones internas utiles para la tarea.
 \end{block}
-
-\column{0.40\textwidth}
-\begin{center}
-\includegraphics[width=\linewidth]{Figuras/simplenn.png}
-\end{center}
-\end{columns}
-\end{frame}
-
-\begin{frame}{Tensores, shapes y tipos de salida}
-\begin{columns}[T,onlytextwidth]
-\column{0.54\textwidth}
-\begin{itemize}
-    \item Un lote de entrenamiento suele verse como una matriz de forma $(N_{\mathrm{batch}}, N_{\mathrm{feat}})$.
-    \item En clasificacion binaria la salida suele ser un numero entre 0 y 1.
-    \item En regresion la salida puede ser un valor real, por ejemplo una temperatura efectiva o una masa estimada.
-    \item El \textbf{shape} correcto es tan importante como la idea fisica del problema.
-\end{itemize}
-
-\column{0.42\textwidth}
-\begin{tikzpicture}[scale=0.78]
-\foreach \y in {0,0.5,1.0,1.5} {
-  \foreach \x in {0,0.5,1.0,1.5} {
-    \draw[fill=MidnightBlue!10] (\x,\y) rectangle +(0.4,0.4);
-  }
-}
-\node at (1.0,2.3) {\small batch $\times$ features};
-\draw[->,thick] (2.4,0.85) -- (3.3,0.85);
-\foreach \y in {0.25,0.85,1.45} {
-  \draw[fill=Crimson!15] (3.6,\y) circle (0.14);
-}
-\node at (4.3,2.3) {\small salida};
-\end{tikzpicture}
-\end{columns}
-\end{frame}
-
-\begin{frame}{Activaciones y funcion de perdida}
-\begin{columns}[T,onlytextwidth]
-\column{0.40\textwidth}
-\begin{block}{Activaciones frecuentes}
-\begin{itemize}
-    \item \textbf{ReLU}: rapida y efectiva en capas ocultas.
-    \item \textbf{Sigmoide}: util en salida binaria.
-    \item \textbf{Softmax}: util en clasificacion multiclase.
-\end{itemize}
-\end{block}
-
-\column{0.28\textwidth}
-\begin{center}
-\includegraphics[width=\linewidth]{Figuras/activation.png}
-\end{center}
-
-\column{0.28\textwidth}
-\begin{block}{Perdidas frecuentes}
-\begin{itemize}
-    \item \textbf{binary crossentropy} para dos clases;
-    \item \textbf{categorical crossentropy} para varias clases;
-    \item \textbf{mse} para regresion.
-\end{itemize}
-\end{block}
-\end{columns}
-
-\begin{alertblock}{Criterio practico}
-La capa de salida, la activacion y la funcion de perdida deben estar alineadas con la pregunta cientifica.
-\end{alertblock}
 \end{frame}
 
 \begin{frame}{Entrenamiento, validacion y test}
-\justifying
-Separar los datos en tres conjuntos evita engañarnos con resultados demasiado optimistas:
 \begin{itemize}
-    \item \textbf{train}: ajusta los pesos del modelo;
-    \item \textbf{validation}: ayuda a elegir hiperparametros y detener el entrenamiento;
-    \item \textbf{test}: entrega una estimacion honesta del rendimiento final.
+    \item \textbf{Train}: ajusta los pesos del modelo.
+    \item \textbf{Validation}: ayuda a elegir arquitectura, hiperparametros y momento de detencion.
+    \item \textbf{Test}: entrega una estimacion final del rendimiento fuera del entrenamiento.
 \end{itemize}
 
-\begin{block}{Buena practica}
-No mirar el conjunto de test hasta el final. Si lo usamos reiteradamente para decidir, deja de ser una prueba independiente.
-\end{block}
-\end{frame}
-
-\begin{frame}{Sobreajuste y subajuste}
-\begin{columns}[T,onlytextwidth]
-\column{0.52\textwidth}
-\begin{itemize}
-    \item \textbf{Subajuste}: el modelo es demasiado simple o entrena poco.
-    \item \textbf{Sobreajuste}: el modelo aprende detalles espurios del conjunto de entrenamiento.
-    \item Señales tipicas:
-    \begin{itemize}
-        \item perdida de entrenamiento baja y validacion alta;
-        \item precision de entrenamiento sube mientras validacion se estanca;
-        \item sensibilidad extrema al ruido.
-    \end{itemize}
-\end{itemize}
-
-\column{0.44\textwidth}
-\begin{tikzpicture}
-\begin{axis}[
-    width=5.0cm,
-    height=4.2cm,
-    xmin=0,xmax=20,
-    ymin=0.1,ymax=1.2,
-    axis lines=left,
-    xtick={0,5,10,15,20},
-    ytick={0.2,0.6,1.0},
-    xlabel={epoch},
-    ylabel={loss},
-    tick label style={font=\tiny},
-    label style={font=\tiny}
-]
-\addplot[very thick,MidnightBlue] coordinates {(0,1.05)(4,0.68)(8,0.45)(12,0.31)(16,0.22)(20,0.18)};
-\addplot[very thick,Crimson,dashed] coordinates {(0,1.08)(4,0.74)(8,0.53)(12,0.49)(16,0.55)(20,0.66)};
-\end{axis}
-\end{tikzpicture}
-\end{columns}
+\begin{alertblock}{Buena practica}
+No mirar test hasta el final. Si usamos test para decidir arquitectura, deja de ser una evaluacion independiente.
+\end{alertblock}
 \end{frame}
 
 \begin{frame}[fragile]{Codigo de apoyo: por que escalar variables}
@@ -327,9 +96,9 @@ No mirar el conjunto de test hasta el final. Si lo usamos reiteradamente para de
 
 \begin{frame}{Cierre Clase 1}
 \begin{itemize}
-    \item Una red neuronal no es magia: es una composicion de operaciones numericas entrenadas con datos.
-    \item En ciencia, el preprocesamiento y la definicion del objetivo siguen siendo tan importantes como la arquitectura.
-    \item Antes de usar modelos complejos conviene validar shapes, normalizacion y diagnosticos de generalizacion.
+    \item Una red neuronal es una composicion de operaciones numericas entrenadas con datos.
+    \item El preprocesamiento y la definicion del objetivo son tan importantes como la arquitectura.
+    \item Antes de usar modelos complejos conviene validar shapes, escalamiento y metricas.
 \end{itemize}
 \end{frame}
 
@@ -339,117 +108,112 @@ No mirar el conjunto de test hasta el final. Si lo usamos reiteradamente para de
 \centering
 \vfill
 {\Huge \bfseries Clase 2}\\[0.4cm]
-{\Large Taller guiado con \texttt{tensorflow.keras}: de un catalogo sintetico a una clasificacion binaria}
+{\Large Taller guiado: redes neuronales con Pima Indians Diabetes}
 \vfill
 \end{frame}
 
 \begin{frame}{Objetivos de la Clase 2}
 \begin{itemize}
-    \item Implementar un flujo moderno de entrenamiento con \texttt{tensorflow.keras}.
-    \item Construir un ejemplo autocontenido inspirado en datos astronomicos tabulados.
-    \item Interpretar accuracy, perdida, umbral de clasificacion y matriz de confusion.
-    \item Diseñar extensiones realistas hacia datos observacionales o salidas de simulacion.
+    \item Construir un flujo completo de clasificacion binaria con \texttt{tensorflow.keras}.
+    \item Usar Pima Indians Diabetes como dataset tabulado simple y conocido.
+    \item Comparar redes con menos neuronas, mas neuronas, \texttt{Dropout} y distintos hiperparametros.
+    \item Interpretar probabilidades, matriz de confusion, sensibilidad, especificidad y umbral de decision.
+    \item Discutir limites eticos: una red docente no es una herramienta diagnostica.
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Caso de estudio: catalogo sintetico de transitos}
+\begin{frame}{Caso de estudio: Pima Indians Diabetes}
 \justifying
-Usaremos un problema sencillo y reproducible: clasificar eventos como
-\textbf{transito probable} o \textbf{no transito} a partir de descriptores ya resumidos.
-
+El conjunto de datos contiene 768 registros clinicos tabulados con 8 variables de entrada y una salida binaria \texttt{Outcome}.
 \begin{itemize}
-    \item profundidad relativa del evento;
-    \item duracion en horas;
-    \item razon señal/ruido;
-    \item color estelar resumido;
-    \item nivel de variabilidad basal.
+    \item Entradas: embarazos, glucosa, presion arterial, pliegue cutaneo, insulina, BMI, funcion de pedigree diabetico y edad.
+    \item Salida: clase 0 o 1 asociada al resultado observado en el dataset.
+    \item Tamano: pequeno, ideal para experimentar en clase sin hardware especial.
 \end{itemize}
 
-\begin{alertblock}{Advertencia pedagogica}
-Este conjunto de datos es sintetico. Sirve para practicar flujo de trabajo y diagnostico, no para afirmar rendimiento cientifico real.
+\begin{alertblock}{Advertencia}
+El notebook estima probabilidades segun un modelo entrenado con este dataset. No entrega diagnosticos medicos ni reemplaza evaluacion profesional.
 \end{alertblock}
 \end{frame}
 
-\begin{frame}{Flujo minimo recomendado}
+\begin{frame}{Ruta de trabajo en el notebook}
 \begin{enumerate}
-    \item generar o cargar datos;
-    \item separar en train, validation y test;
-    \item escalar variables de entrada;
-    \item definir arquitectura y compilar;
-    \item entrenar con \texttt{EarlyStopping};
-    \item evaluar y revisar errores tipicos.
+    \item cargar datos y reconocer columnas;
+    \item tratar ceros no fisiologicos como datos faltantes;
+    \item separar train, validation y test;
+    \item imputar medianas y escalar variables;
+    \item construir una red densa pequena;
+    \item comparar arquitecturas;
+    \item evaluar umbrales y predicciones nuevas;
+    \item probar una red grande opcional para discutir GPU.
 \end{enumerate}
-
-\begin{block}{Buena practica de curso}
-Guardar el preprocesamiento y el umbral de decision junto con el modelo evita que el pipeline quede incompleto.
-\end{block}
 \end{frame}
 
-\begin{frame}[fragile]{Codigo principal: datos y particion}
-\inputminted[firstline=8,lastline=43,fontsize=\compactcode]{python}{codes/stellar_catalog_mlp.py}
+\begin{frame}[fragile]{Parte 1: cargar datos}
+\inputminted[fontsize=\compactcode]{python}{codes/clase2-p1.py}
 \end{frame}
 
-\begin{frame}[fragile]{Codigo principal: arquitectura y entrenamiento}
-\inputminted[firstline=45,lastline=77,fontsize=\compactcode]{python}{codes/stellar_catalog_mlp.py}
+\begin{frame}[fragile]{Parte 2: limpiar, separar y escalar}
+\inputminted[fontsize=\compactcode]{python}{codes/clase2-p2.py}
 \end{frame}
 
-\begin{frame}[fragile]{Codigo principal: evaluacion y diagnostico}
-\inputminted[firstline=79,lastline=96,fontsize=\tiny]{python}{codes/stellar_catalog_mlp.py}
+\begin{frame}[fragile]{Parte 3: primera red neuronal}
+\inputminted[fontsize=\compactcode]{python}{codes/clase2-p3.py}
 \end{frame}
 
-\begin{frame}{Que deberiamos mirar en los resultados}
+\begin{frame}[fragile]{Parte 4: comparar arquitecturas}
+\inputminted[fontsize=\compactcode]{python}{codes/clase2-p4.py}
+\end{frame}
+
+\begin{frame}[fragile]{Parte 5: evaluar umbrales}
+\inputminted[fontsize=\compactcode]{python}{codes/clase2-p5.py}
+\end{frame}
+
+\begin{frame}[fragile]{Parte 6: ingresar un caso nuevo}
+\inputminted[fontsize=\compactcode]{python}{codes/clase2-p6.py}
+\end{frame}
+
+\begin{frame}{Preguntas para guiar la discusion}
 \begin{itemize}
-    \item \textbf{loss} y \textbf{val\_loss}: miden estabilidad del entrenamiento.
-    \item \textbf{accuracy}: util, pero insuficiente si las clases estan desbalanceadas.
-    \item \textbf{confusion matrix}: muestra falsos positivos y falsos negativos.
-    \item \textbf{threshold}: cambiar el umbral altera el compromiso entre sensibilidad y precision.
+    \item \textbf{Arquitectura}: una red mas grande siempre mejora el resultado?
+    \item \textbf{Datos}: que variables tienen ceros que parecen datos faltantes?
+    \item \textbf{Metricas}: accuracy basta para tomar decisiones en salud?
+    \item \textbf{Umbral}: como cambia el balance entre falsos positivos y falsos negativos?
+    \item \textbf{Etica}: por que una probabilidad del modelo no es un diagnostico?
 \end{itemize}
-
-\begin{block}{Pregunta cientifica}
-En un pipeline de deteccion, \textquestiondown preferimos perder candidatos reales o revisar mas falsos positivos? La respuesta depende del costo experimental y del objetivo fisico.
-\end{block}
 \end{frame}
 
-\begin{frame}{Conexiones naturales con PCFI261}
-\begin{itemize}
-    \item Clasificar curvas de luz o eventos transientes a partir de features resumidas.
-    \item Regresion de parametros fisicos a partir de espectros o salidas de simulacion.
-    \item Autoencoders para reducir dimensionalidad de snapshots de simulaciones.
-    \item Redes convolucionales para imagenes astronómicas o mapas 2D.
-\end{itemize}
+\begin{frame}{Actividad: datos propios o familiares}
+\begin{block}{Uso permitido en clase}
+Ingresar un caso anonimo para observar como responde el modelo cuando cambian glucosa, BMI, edad u otras variables.
+\end{block}
 
-\begin{alertblock}{Criterio de modelacion}
-La red es una herramienta. La pregunta fisica, la calidad de las etiquetas y la estrategia de validacion siguen mandando.
+\begin{alertblock}{Limites}
+No registrar nombres ni identificadores. No presentar el resultado como diagnostico. Si el resultado genera preocupacion, la accion correcta es consultar a un profesional de salud.
 \end{alertblock}
-\end{frame}
 
-\begin{frame}{Actividades propuestas}
-\begin{enumerate}
-    \item \textbf{Base}: ejecutar el ejemplo con dos capas ocultas y reportar accuracy, precision y recall.
-    \item \textbf{Exploracion}: variar numero de neuronas, tasa de aprendizaje y batch size.
-    \item \textbf{Umbral}: comparar resultados con umbrales 0.3, 0.5 y 0.7.
-    \item \textbf{Extension}: reformular el problema como regresion para predecir un parametro continuo.
-    \item \textbf{Desafio}: reemplazar el catalogo sintetico por un dataset propio del curso y justificar el pipeline.
-\end{enumerate}
-
-\begin{block}{Entregable sugerido}
-Notebook o script con metricas, figuras, breve discusion de errores y reflexion sobre como cambiaria el experimento con datos reales.
+\begin{block}{Discusion cientifica}
+El ejercicio sirve para hablar de extrapolacion, sesgo del dataset, incertidumbre, causalidad y responsabilidad al comunicar resultados de modelos.
 \end{block}
 \end{frame}
 
-\begin{frame}{Comentarios docentes}
+\begin{frame}{Experimento opcional con GPU}
 \begin{itemize}
-    \item Conviene enfatizar que \texttt{predict\_classes} ya no se usa: hoy se umbraliza la salida de \texttt{model.predict}.
-    \item Si el estudiantado no tiene TensorFlow instalado, el flujo puede discutirse primero leyendo el codigo y luego ejecutarse en un entorno preparado.
-    \item La semana queda mejor conectada con PCFI261 si la actividad final se ata a catalogos, curvas de luz o salidas de simulacion ya vistas en el curso.
+    \item Pima es pequeno: una CPU basta.
+    \item Para justificar GPU se incluye una celda opcional con datos sinteticos de alta dimension y una red con millones de parametros.
+    \item En Colab se puede comparar CPU versus GPU cambiando el entorno de ejecucion.
 \end{itemize}
+
+\begin{block}{Mensaje docente}
+La GPU no hace mas inteligente al modelo. Acelera operaciones matriciales grandes cuando el problema y la arquitectura lo justifican.
+\end{block}
 \end{frame}
 
 \begin{frame}{Cierre de la semana}
 \begin{itemize}
-    \item Modernizar deep learning no significa usar modelos mas grandes, sino usar mejores practicas.
-    \item Un pipeline reproducible requiere separar datos, escalar, monitorear validacion y documentar decisiones.
-    \item Esta semana deja una base util para pasar luego a imagenes, series de tiempo o problemas de regresion cientifica.
+    \item Deep learning en datos tabulados puede estudiarse con redes densas simples antes de pasar a imagenes o series.
+    \item El rendimiento depende tanto del preprocesamiento y la validacion como de la arquitectura.
+    \item En problemas de salud, la interpretacion y la comunicacion responsable son parte del modelamiento.
 \end{itemize}
 \end{frame}
 

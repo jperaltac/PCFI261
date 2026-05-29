@@ -66,6 +66,25 @@ La Semana 09 se divide en \textbf{Clase 1} y \textbf{Clase 2}, manteniendo la es
 \end{itemize}
 \end{frame}
 
+\begin{frame}{Una red neuronal densa}
+\centering
+\begin{tikzpicture}[scale=0.72,transform shape]
+\def\xA{0} \def\xB{3.2} \def\xC{6.4} \def\xD{9.2}
+\foreach \y in {-1.8,-1.2,-0.6,0,0.6,1.2,1.8} {\node[circle,fill=MidnightBlue!75,draw=white,minimum size=7pt] at (\xA,\y) {};}
+\foreach \y in {-2,-1.4,-0.8,-0.2,0.4,1.0,1.6,2.2} {\node[circle,fill=ForestGreen!70,draw=white,minimum size=7pt] at (\xB,\y) {};}
+\foreach \y in {-1.6,-1.0,-0.4,0.2,0.8,1.4} {\node[circle,fill=ForestGreen!70,draw=white,minimum size=7pt] at (\xC,\y) {};}
+\node[circle,fill=Crimson!80,draw=white,minimum size=8pt] at (\xD,0.2) {};
+\foreach \ya in {-1.8,-1.2,-0.6,0,0.6,1.2,1.8} {\foreach \yb in {-2,-1.4,-0.8,-0.2,0.4,1.0,1.6,2.2} {\draw[gray!35,thin] (\xA+0.13,\ya)--(\xB-0.13,\yb);}}
+\foreach \ya in {-2,-1.4,-0.8,-0.2,0.4,1.0,1.6,2.2} {\foreach \yb in {-1.6,-1.0,-0.4,0.2,0.8,1.4} {\draw[gray!35,thin] (\xB+0.13,\ya)--(\xC-0.13,\yb);}}
+\foreach \ya in {-1.6,-1.0,-0.4,0.2,0.8,1.4} {\draw[gray!45,thin] (\xC+0.13,\ya)--(\xD-0.13,0.2);}
+\node[align=center,font=\small\bfseries] at (\xA,-2.7) {Entradas\\8 variables};
+\node[align=center,font=\small\bfseries] at (\xB,-2.7) {Capa oculta\\16 neuronas};
+\node[align=center,font=\small\bfseries] at (\xC,-2.7) {Capa oculta\\8 neuronas};
+\node[align=center,font=\small\bfseries] at (\xD,-2.7) {Salida\\probabilidad};
+\node[font=\small] at (4.6,2.9) {Cada conexion tiene un peso que se ajusta durante el entrenamiento};
+\end{tikzpicture}
+\end{frame}
+
 \begin{frame}{Una capa densa como operacion matematica}
 Una capa densa recibe un vector de entrada $\bm{x}\in\mathbb{R}^{n}$ y produce
 \[
@@ -76,6 +95,24 @@ donde $W$ contiene pesos, $\bm{b}$ contiene sesgos y $\phi$ es una activacion no
 \begin{block}{Lectura computacional}
 Cada capa mezcla componentes del arreglo de entrada y aplica una no linealidad. Al encadenar capas, la red aprende representaciones internas utiles para la tarea.
 \end{block}
+\end{frame}
+
+\begin{frame}{Entrenar es repetir un ciclo}
+\centering
+\begin{tikzpicture}[>=latex,scale=0.78,transform shape]
+\tikzstyle{box}=[draw,rounded corners,very thick,minimum width=2.6cm,minimum height=1.1cm,align=center,font=\small\bfseries]
+\node[box,fill=MidnightBlue!18] (data) at (0,0) {Datos\\train batch};
+\node[box,fill=ForestGreen!18] (forward) at (3.1,0) {Forward pass\\$\hat{y}=f(x)$};
+\node[box,fill=orange!18] (loss) at (6.2,0) {Perdida\\$L(\hat{y},y)$};
+\node[box,fill=Purple!14] (back) at (9.3,0) {Backprop\\gradientes};
+\node[box,fill=Crimson!14] (update) at (12.4,0) {Actualizar\\pesos};
+\draw[->,very thick] (data) -- (forward);
+\draw[->,very thick] (forward) -- (loss);
+\draw[->,very thick] (loss) -- (back);
+\draw[->,very thick] (back) -- (update);
+\draw[->,very thick,gray] (update.south) to[out=-90,in=-90] node[below,font=\small] {repetir por epocas} (data.south);
+\node[font=\small] at (6.2,1.35) {El modelo aprende ajustando pesos para reducir la perdida de validacion};
+\end{tikzpicture}
 \end{frame}
 
 \begin{frame}{Entrenamiento, validacion y test}
@@ -123,20 +160,36 @@ No mirar test hasta el final. Si usamos test para decidir arquitectura, deja de 
 \end{frame}
 
 \begin{frame}{Caso de estudio: Pima Indians Diabetes}
+\begin{columns}[T,onlytextwidth]
+\column{0.52\textwidth}
 \justifying
 El conjunto de datos contiene 768 registros clinicos tabulados con 8 variables de entrada y una salida binaria \texttt{Outcome}.
 \begin{itemize}
-    \item Entradas: embarazos, glucosa, presion arterial, pliegue cutaneo, insulina, BMI, funcion de pedigree diabetico y edad.
-    \item Salida: clase 0 o 1 asociada al resultado observado en el dataset.
-    \item Tamano: pequeno, ideal para experimentar en clase sin hardware especial.
+    \item glucosa, presion arterial, insulina, BMI y edad;
+    \item funcion de pedigree diabetico;
+    \item objetivo binario: clase 0 o clase 1.
 \end{itemize}
 
 \begin{alertblock}{Advertencia}
-El notebook estima probabilidades segun un modelo entrenado con este dataset. No entrega diagnosticos medicos ni reemplaza evaluacion profesional.
+El modelo es docente: estima una probabilidad segun estos datos, no un diagnostico medico.
 \end{alertblock}
+
+\column{0.44\textwidth}
+\centering
+\begin{tikzpicture}[scale=0.72,transform shape]
+\node[draw=orange!80,fill=orange!8,rounded corners,very thick,text width=5.4cm,align=left,inner sep=8pt] {
+\centering\bfseries Probabilidad $\neq$ diagnostico\\[0.2cm]
+\raggedright
+$\bullet$ sin nombres ni identificadores\\
+$\bullet$ casos anonimos o ficticios\\
+$\bullet$ discutir sesgo e incertidumbre\\
+$\bullet$ ante duda: salud profesional
+};
+\end{tikzpicture}
+\end{columns}
 \end{frame}
 
-\begin{frame}{Ruta de trabajo en el notebook}
+\begin{frame}{Mapa visual del laboratorio}
 \begin{enumerate}
     \item cargar datos y reconocer columnas;
     \item tratar ceros no fisiologicos como datos faltantes;
@@ -153,24 +206,150 @@ El notebook estima probabilidades segun un modelo entrenado con este dataset. No
 \inputminted[fontsize=\compactcode]{python}{codes/clase2-p1.py}
 \end{frame}
 
+\begin{frame}{Preprocesamiento antes de entrenar}
+\begin{columns}[T,onlytextwidth]
+\column{0.55\textwidth}
+\begin{itemize}
+    \item Algunos ceros son valores no fisiologicos y se tratan como faltantes.
+    \item La imputacion y el escalamiento se ajustan solo con \texttt{train}.
+    \item \texttt{validation} y \texttt{test} simulan datos que el modelo aun no conoce.
+\end{itemize}
+\column{0.40\textwidth}
+\begin{block}{Idea clave}
+La red aprende mejor cuando las variables numericas viven en escalas comparables.
+\end{block}
+\end{columns}
+\end{frame}
+
 \begin{frame}[fragile]{Parte 2: limpiar, separar y escalar}
 \inputminted[fontsize=\compactcode]{python}{codes/clase2-p2.py}
+\end{frame}
+
+\begin{frame}{Arquitectura base}
+\centering
+\begin{tikzpicture}[scale=0.72,transform shape]
+\def\xA{0} \def\xB{3.2} \def\xC{6.4} \def\xD{9.2}
+\foreach \y in {-1.8,-1.2,-0.6,0,0.6,1.2,1.8} {\node[circle,fill=MidnightBlue!75,draw=white,minimum size=7pt] at (\xA,\y) {};}
+\foreach \y in {-2,-1.4,-0.8,-0.2,0.4,1.0,1.6,2.2} {\node[circle,fill=ForestGreen!70,draw=white,minimum size=7pt] at (\xB,\y) {};}
+\foreach \y in {-1.6,-1.0,-0.4,0.2,0.8,1.4} {\node[circle,fill=ForestGreen!70,draw=white,minimum size=7pt] at (\xC,\y) {};}
+\node[circle,fill=Crimson!80,draw=white,minimum size=8pt] at (\xD,0.2) {};
+\foreach \ya in {-1.8,-1.2,-0.6,0,0.6,1.2,1.8} {\foreach \yb in {-2,-1.4,-0.8,-0.2,0.4,1.0,1.6,2.2} {\draw[gray!35,thin] (\xA+0.13,\ya)--(\xB-0.13,\yb);}}
+\foreach \ya in {-2,-1.4,-0.8,-0.2,0.4,1.0,1.6,2.2} {\foreach \yb in {-1.6,-1.0,-0.4,0.2,0.8,1.4} {\draw[gray!35,thin] (\xB+0.13,\ya)--(\xC-0.13,\yb);}}
+\foreach \ya in {-1.6,-1.0,-0.4,0.2,0.8,1.4} {\draw[gray!45,thin] (\xC+0.13,\ya)--(\xD-0.13,0.2);}
+\node[align=center,font=\small\bfseries] at (\xA,-2.7) {8 entradas};
+\node[align=center,font=\small\bfseries] at (\xB,-2.7) {16 neuronas};
+\node[align=center,font=\small\bfseries] at (\xC,-2.7) {8 neuronas};
+\node[align=center,font=\small\bfseries] at (\xD,-2.7) {sigmoide};
+\end{tikzpicture}
 \end{frame}
 
 \begin{frame}[fragile]{Parte 3: primera red neuronal}
 \inputminted[fontsize=\compactcode]{python}{codes/clase2-p3.py}
 \end{frame}
 
+\begin{frame}{Comparar capacidad del modelo}
+\centering
+\begin{tikzpicture}[x=1cm,y=1cm]
+\draw[->,thick] (0,0) -- (10.5,0) node[right,font=\small] {modelo};
+\draw[->,thick] (0,0) -- (0,4.5) node[above,font=\small] {parametros};
+\foreach \x/\h/\name/\col in {1.3/0.7/muy pequena/MidnightBlue,3.5/1.8/base/ForestGreen,5.9/3.5/mas neuronas/orange,8.4/3.5/regularizada/Purple} {
+  \draw[fill=\col!55,draw=\col!90] (\x,0) rectangle +(1.1,\h);
+  \node[font=\small,align=center] at (\x+0.55,-0.45) {\name};
+}
+\draw[very thick,Crimson] (1.85,2.4) -- (4.05,3.1) -- (6.45,2.9) -- (8.95,3.25);
+\foreach \x/\y in {1.85/2.4,4.05/3.1,6.45/2.9,8.95/3.25} {\node[circle,fill=Crimson,inner sep=2.4pt] at (\x,\y) {};}
+\node[Crimson,font=\small\bfseries] at (7.1,4.0) {validacion esperada};
+\node[font=\small] at (5.2,4.45) {Mas parametros aumentan capacidad, pero tambien riesgo de sobreajuste};
+\end{tikzpicture}
+\end{frame}
+
 \begin{frame}[fragile]{Parte 4: comparar arquitecturas}
 \inputminted[fontsize=\compactcode]{python}{codes/clase2-p4.py}
+\end{frame}
+
+\begin{frame}{Evaluar no es solo mirar accuracy}
+\begin{columns}[T,onlytextwidth]
+\column{0.50\textwidth}
+\centering
+\begin{tikzpicture}[scale=0.78,transform shape]
+\foreach \x/\y/\v/\lab/\shade in {0/1.6/62/TN/45,2.1/1.6/13/FP/15,0/0/17/FN/20,2.1/0/23/TP/28} {
+  \draw[fill=MidnightBlue!\shade,draw=white,very thick] (\x,\y) rectangle +(1.9,1.35);
+  \node[font=\Large\bfseries] at (\x+0.95,\y+0.82) {\v};
+  \node[font=\small] at (\x+0.95,\y+0.35) {\lab};
+}
+\node[font=\small] at (0.95,-0.35) {pred 0};
+\node[font=\small] at (3.05,-0.35) {pred 1};
+\node[font=\small,rotate=90] at (-0.45,2.25) {real 0};
+\node[font=\small,rotate=90] at (-0.45,0.65) {real 1};
+\end{tikzpicture}
+\column{0.46\textwidth}
+\begin{itemize}
+    \item La matriz de confusion muestra tipos de error.
+    \item Sensibilidad y especificidad cambian con el umbral.
+    \item En salud, los costos de error no son simetricos.
+\end{itemize}
+\end{columns}
+\end{frame}
+
+\begin{frame}{El umbral tambien es una decision}
+\centering
+\begin{tikzpicture}[x=10cm,y=4cm]
+\draw[->,thick] (0,0) -- (1.03,0) node[right,font=\small] {umbral};
+\draw[->,thick] (0,0) -- (0,1.05) node[above,font=\small] {metrica};
+\draw[very thick,MidnightBlue] plot[smooth] coordinates {(0.05,0.95)(0.2,0.85)(0.35,0.70)(0.5,0.50)(0.65,0.32)(0.8,0.18)(0.95,0.10)};
+\draw[very thick,orange] plot[smooth] coordinates {(0.05,0.12)(0.2,0.22)(0.35,0.38)(0.5,0.56)(0.65,0.72)(0.8,0.86)(0.95,0.94)};
+\draw[dashed,thick,gray] (0.5,0) -- (0.5,1);
+\node[MidnightBlue,font=\small\bfseries] at (0.22,0.93) {sensibilidad};
+\node[orange,font=\small\bfseries] at (0.78,0.93) {especificidad};
+\node[font=\small,rotate=90] at (0.53,0.18) {umbral 0.5};
+\node[font=\small] at (0.5,-0.16) {Bajar o subir el umbral cambia el tipo de error que aceptamos};
+\end{tikzpicture}
 \end{frame}
 
 \begin{frame}[fragile]{Parte 5: evaluar umbrales}
 \inputminted[fontsize=\compactcode]{python}{codes/clase2-p5.py}
 \end{frame}
 
+\begin{frame}{Actividad: datos propios o familiares}
+\begin{columns}[T,onlytextwidth]
+\column{0.50\textwidth}
+\begin{block}{Uso permitido en clase}
+Ingresar un caso anonimo para observar como responde el modelo cuando cambian glucosa, BMI, edad u otras variables.
+\end{block}
+\begin{alertblock}{Limites}
+No registrar nombres ni identificadores. No presentar el resultado como diagnostico.
+\end{alertblock}
+\column{0.46\textwidth}
+\centering
+\begin{tikzpicture}[scale=0.72,transform shape]
+\node[draw=orange!80,fill=orange!8,rounded corners,very thick,text width=5.4cm,align=left,inner sep=8pt] {
+\centering\bfseries Probabilidad $\neq$ diagnostico\\[0.2cm]
+\raggedright
+$\bullet$ sin nombres ni identificadores\\
+$\bullet$ casos anonimos o ficticios\\
+$\bullet$ discutir sesgo e incertidumbre\\
+$\bullet$ ante duda: salud profesional
+};
+\end{tikzpicture}
+\end{columns}
+\end{frame}
+
 \begin{frame}[fragile]{Parte 6: ingresar un caso nuevo}
 \inputminted[fontsize=\compactcode]{python}{codes/clase2-p6.py}
+\end{frame}
+
+\begin{frame}{Experimento opcional con GPU}
+\centering
+\begin{tikzpicture}[>=latex,scale=0.9,transform shape]
+\node[draw=MidnightBlue,fill=MidnightBlue!12,very thick,rounded corners,minimum width=4.1cm,minimum height=2.2cm,align=center] (cpu) at (0,0) {\Huge\bfseries CPU\\[0.2cm]\small problemas pequenos\\flujo general};
+\node[draw=Purple,fill=Purple!12,very thick,rounded corners,minimum width=4.1cm,minimum height=2.2cm,align=center] (gpu) at (6.2,0) {\Huge\bfseries GPU\\[0.2cm]\small matrices grandes\\mucho paralelismo};
+\draw[->,very thick,gray] (cpu) -- node[above,font=\small] {red gigante} (gpu);
+\node[font=\small] at (3.1,-2.0) {La GPU acelera el calculo cuando hay escala suficiente; no mejora la pregunta cientifica.};
+\end{tikzpicture}
+\end{frame}
+
+\begin{frame}[fragile]{Parte 7: red grande opcional}
+\inputminted[fontsize=\compactcode]{python}{codes/clase2-p7.py}
 \end{frame}
 
 \begin{frame}{Preguntas para guiar la discusion}
@@ -183,30 +362,15 @@ El notebook estima probabilidades segun un modelo entrenado con este dataset. No
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Actividad: datos propios o familiares}
-\begin{block}{Uso permitido en clase}
-Ingresar un caso anonimo para observar como responde el modelo cuando cambian glucosa, BMI, edad u otras variables.
-\end{block}
-
-\begin{alertblock}{Limites}
-No registrar nombres ni identificadores. No presentar el resultado como diagnostico. Si el resultado genera preocupacion, la accion correcta es consultar a un profesional de salud.
-\end{alertblock}
-
-\begin{block}{Discusion cientifica}
-El ejercicio sirve para hablar de extrapolacion, sesgo del dataset, incertidumbre, causalidad y responsabilidad al comunicar resultados de modelos.
-\end{block}
-\end{frame}
-
-\begin{frame}{Experimento opcional con GPU}
+\begin{frame}{Creditos visuales}
+\small
+Las figuras incorporadas en esta version fueron generadas para la clase a partir del flujo docente del notebook. Para seleccionar el estilo se revisaron diagramas abiertos de Wikimedia Commons:
 \begin{itemize}
-    \item Pima es pequeno: una CPU basta.
-    \item Para justificar GPU se incluye una celda opcional con datos sinteticos de alta dimension y una red con millones de parametros.
-    \item En Colab se puede comparar CPU versus GPU cambiando el entorno de ejecucion.
+    \item \textit{MultiLayerPerceptron.svg}, Sky99, CC BY-SA 3.0.
+    \item \textit{MLP-training-loop.svg}, Alexis0Olson, Wikimedia Commons.
+    \item \textit{Neural Network.svg}, QuantuMechaniX8, CC0.
+    \item \textit{Fully connected neural network.svg}, Raquel Garrido Alhama, CC BY-SA 4.0.
 \end{itemize}
-
-\begin{block}{Mensaje docente}
-La GPU no hace mas inteligente al modelo. Acelera operaciones matriciales grandes cuando el problema y la arquitectura lo justifican.
-\end{block}
 \end{frame}
 
 \begin{frame}{Cierre de la semana}

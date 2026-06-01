@@ -1,0 +1,310 @@
+\input{../latex/preamble-beamer.tex}
+
+\weektitle{10}{redes densas para senales fisicas y astronomicas}
+\titlegraphic{}
+\title[PCFI261 -- Semana 10]{\Large Modelos Computacionales PCFI261\\Semana 10: redes densas para senales\\fisicas y astronomicas}
+\newcommand{\compactcode}{\fontsize{5}{4.7}\selectfont}
+
+\begin{document}
+
+\begin{frame}[plain]
+\centering
+\vfill
+{\Large\bfseries Modelos Computacionales PCFI261}\\[0.25cm]
+{\large Semana 10: redes densas para senales\\fisicas y astronomicas}\\[0.7cm]
+{\large Joaquin Peralta}\\[0.15cm]
+{\small \texttt{joaquin.peralta@unab.cl}}\\[0.35cm]
+{\small Universidad Andres Bello}
+\vfill
+\end{frame}
+
+\begin{frame}{Organizacion de la semana}
+\begin{block}{Continuidad desde Semana 09}
+Venimos de redes densas para datos tabulados y del caso Pima Indians Diabetes. Esta semana mantenemos redes densas, escalamiento, train/validation/test y metricas, pero cambiamos el contexto hacia problemas cientificos simulados.
+\end{block}
+
+\begin{columns}[T,onlytextwidth]
+\column{0.48\textwidth}
+\textbf{Clase 1}
+\begin{itemize}
+    \item emulador para un oscilador amortiguado;
+    \item regresion con una red densa;
+    \item error fisico e interpolacion;
+    \item primer benchmark CPU/GPU.
+\end{itemize}
+
+\column{0.48\textwidth}
+\textbf{Clase 2}
+\begin{itemize}
+    \item curvas de luz sinteticas;
+    \item transitos de exoplanetas;
+    \item clasificacion binaria con red densa;
+    \item aumento de escala para justificar GPU.
+\end{itemize}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Idea de la semana}
+\begin{columns}[T,onlytextwidth]
+\column{0.50\textwidth}
+\begin{block}{No queremos una red mas compleja}
+Queremos una pregunta cientifica mas interesante usando la misma herramienta: capas densas, activaciones, perdida, optimizador y validacion.
+\end{block}
+\begin{itemize}
+    \item Clase 1: aprender una funcion fisica continua.
+    \item Clase 2: reconocer una firma astronomica simple.
+    \item En ambas: comparar CPU/GPU sin convertir la clase en ingenieria de hardware.
+\end{itemize}
+\column{0.46\textwidth}
+\centering
+\input{Figuras/week10_overview.tex}
+\end{columns}
+\end{frame}
+
+\section{Clase 1}
+
+\begin{frame}[plain]
+\centering
+\vfill
+{\Huge \bfseries Clase 1}\\[0.4cm]
+{\Large Redes densas como emuladores de modelos fisicos}
+\vfill
+\end{frame}
+
+\begin{frame}{Objetivos de la Clase 1}
+\begin{itemize}
+    \item Construir datos sinteticos de un oscilador amortiguado con parametros variables.
+    \item Entrenar una red densa para aproximar $x(t; A,\gamma,\omega)$.
+    \item Evaluar el error del emulador en curvas que no fueron usadas para entrenar.
+    \item Medir tiempos de entrenamiento en CPU/GPU cuando aumenta el tamano del problema.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Aplicacion fisica: oscilador amortiguado}
+\begin{columns}[T,onlytextwidth]
+\column{0.52\textwidth}
+\justifying
+Un oscilador amortiguado simple puede escribirse, en una version docente, como
+\[
+ x(t)=A\,e^{-\gamma t}\cos(\omega t+\phi).
+\]
+En lugar de resolver la ecuacion cada vez, entrenamos una red que aprende un \textbf{emulador}: recibe parametros y tiempo, y devuelve una posicion aproximada.
+
+\begin{block}{Lectura fisica}
+La red no descubre la ley desde cero: aprende una aproximacion numerica a partir de ejemplos generados por un modelo conocido.
+\end{block}
+
+\column{0.44\textwidth}
+\centering
+\input{Figuras/damped_oscillator.tex}
+\end{columns}
+\end{frame}
+
+\begin{frame}{De la ecuacion a una tabla de entrenamiento}
+\centering
+\begin{tikzpicture}[>=latex,scale=0.86,transform shape]
+\tikzstyle{box}=[draw,rounded corners,very thick,minimum width=2.8cm,minimum height=1.0cm,align=center,font=\small\bfseries]
+\node[box,fill=MidnightBlue!12] (params) at (0,0) {parametros\\$A,\gamma,\omega,\phi$};
+\node[box,fill=ForestGreen!12] (time) at (3.4,0) {tiempos\\$t$};
+\node[box,fill=orange!14] (model) at (6.8,0) {modelo fisico\\$x(t)$};
+\node[box,fill=Purple!12] (table) at (10.2,0) {dataset\\$X,y$};
+\draw[->,very thick] (params) -- (time);
+\draw[->,very thick] (time) -- (model);
+\draw[->,very thick] (model) -- (table);
+\node[font=\small] at (5.1,-1.25) {Cada fila contiene tiempo + parametros como entrada, y posicion como salida.};
+\end{tikzpicture}
+\end{frame}
+
+\begin{frame}[fragile]{Parte 1: generar datos fisicos}
+\inputminted[fontsize=\compactcode]{python}{codes/clase1-p1.py}
+\end{frame}
+
+\begin{frame}{Red densa para regresion}
+\begin{columns}[T,onlytextwidth]
+\column{0.52\textwidth}
+\begin{itemize}
+    \item Entrada: $t$, $A$, $\gamma$, $\omega$ y $\phi$.
+    \item Salida: posicion $x(t)$.
+    \item Perdida: error cuadratico medio, porque la salida es continua.
+    \item Activacion final: lineal, no sigmoide.
+\end{itemize}
+\begin{alertblock}{Cambio respecto a Pima}
+Ya no buscamos una probabilidad binaria. Ahora buscamos aproximar una cantidad fisica real.
+\end{alertblock}
+\column{0.44\textwidth}
+\centering
+\input{Figuras/dense_regressor.tex}
+\end{columns}
+\end{frame}
+
+\begin{frame}[fragile]{Parte 2: entrenar el emulador}
+\inputminted[fontsize=\compactcode]{python}{codes/clase1-p2.py}
+\end{frame}
+
+\begin{frame}{Que significa que el emulador funcione}
+\begin{itemize}
+    \item Debe reproducir amplitud, fase y decaimiento en curvas no vistas.
+    \item El error no debe concentrarse solo en una zona temporal.
+    \item Si extrapolamos fuera del rango de parametros entrenado, el modelo puede fallar con confianza aparente.
+\end{itemize}
+
+\begin{block}{Pregunta para el curso}
+Si conocemos la ecuacion, por que usar una red? Porque en problemas reales el simulador puede ser caro, ruidoso o no tener inversa simple.
+\end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Parte 3: evaluar una curva nueva}
+\inputminted[fontsize=\compactcode]{python}{codes/clase1-p3.py}
+\end{frame}
+
+\begin{frame}{CPU versus GPU: cuando empieza a importar}
+\begin{columns}[T,onlytextwidth]
+\column{0.52\textwidth}
+\begin{itemize}
+    \item Para miles de ejemplos, una CPU puede bastar.
+    \item La GPU ayuda cuando hay muchas operaciones matriciales similares.
+    \item Aumentar el dataset sintetico permite medir el cambio sin buscar archivos externos.
+    \item La GPU acelera entrenamiento, pero no arregla mala validacion ni mala pregunta fisica.
+\end{itemize}
+\column{0.44\textwidth}
+\centering
+\input{Figuras/gpu_scaling.tex}
+\end{columns}
+\end{frame}
+
+\begin{frame}[fragile]{Parte 4: benchmark simple CPU/GPU}
+\inputminted[fontsize=\compactcode]{python}{codes/clase1-p4.py}
+\end{frame}
+
+\begin{frame}{Cierre Clase 1}
+\begin{itemize}
+    \item Una red densa puede actuar como emulador de una funcion fisica parametrizada.
+    \item En regresion cambia la salida, la perdida y la interpretacion del error.
+    \item La comparacion CPU/GPU debe hacerse con problemas suficientemente grandes y con metricas claras.
+\end{itemize}
+\end{frame}
+
+\section{Clase 2}
+
+\begin{frame}[plain]
+\centering
+\vfill
+{\Huge \bfseries Clase 2}\\[0.4cm]
+{\Large Redes densas para detectar transitos de exoplanetas}
+\vfill
+\end{frame}
+
+\begin{frame}{Objetivos de la Clase 2}
+\begin{itemize}
+    \item Simular curvas de luz simples con y sin transito planetario.
+    \item Entrenar una red densa sobre vectores de flujo, sin usar CNN.
+    \item Evaluar matriz de confusion, precision, recall y umbral de decision.
+    \item Escalar el experimento para observar diferencias de rendimiento con GPU.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Aplicacion astronomica: una caida de brillo}
+\begin{columns}[T,onlytextwidth]
+\column{0.52\textwidth}
+\justifying
+Cuando un planeta pasa frente a su estrella, el brillo observado puede bajar levemente durante un intervalo corto. En esta clase generamos curvas sinteticas con ruido y entrenamos una red densa para distinguir:
+\begin{itemize}
+    \item estrella sin transito;
+    \item estrella con una senal de transito simple.
+\end{itemize}
+
+\begin{alertblock}{Limite del modelo}
+No haremos astronomia de precision. Buscamos una experiencia docente: senal, ruido, clasificacion y validacion.
+\end{alertblock}
+
+\column{0.44\textwidth}
+\centering
+\input{Figuras/exoplanet_transit.tex}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Por que todavia no usamos CNN}
+\begin{itemize}
+    \item Una curva de luz discretizada puede verse como un vector: $[f_1,f_2,\ldots,f_N]$.
+    \item Una red densa puede aprender combinaciones globales de esos puntos.
+    \item Las CNN seran utiles mas adelante para explotar estructura local, ventanas y patrones desplazados.
+    \item Aqui mantenemos el foco en redes densas, validacion y GPU.
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Parte 1: simular curvas de luz}
+\inputminted[fontsize=\compactcode]{python}{codes/clase2-p1.py}
+\end{frame}
+
+\begin{frame}{Arquitectura del clasificador}
+\centering
+\input{Figuras/transit_classifier.tex}
+\end{frame}
+
+\begin{frame}[fragile]{Parte 2: entrenar una red densa}
+\inputminted[fontsize=\compactcode]{python}{codes/clase2-p2.py}
+\end{frame}
+
+\begin{frame}{Metricas: mirar errores, no solo accuracy}
+\begin{columns}[T,onlytextwidth]
+\column{0.50\textwidth}
+\centering
+\begin{tikzpicture}[scale=0.82,transform shape]
+\foreach \x/\y/\v/\lab/\shade in {0/1.6/240/TN/45,2.1/1.6/18/FP/18,0/0/26/FN/22,2.1/0/216/TP/36} {
+  \draw[fill=MidnightBlue!\shade,draw=white,very thick] (\x,\y) rectangle +(1.9,1.35);
+  \node[font=\Large\bfseries] at (\x+0.95,\y+0.82) {\v};
+  \node[font=\small] at (\x+0.95,\y+0.35) {\lab};
+}
+\node[font=\small] at (0.95,-0.35) {pred no};
+\node[font=\small] at (3.05,-0.35) {pred si};
+\node[font=\small,rotate=90] at (-0.45,2.25) {real no};
+\node[font=\small,rotate=90] at (-0.45,0.65) {real si};
+\end{tikzpicture}
+\column{0.46\textwidth}
+\begin{itemize}
+    \item Falsos positivos: candidatos que no son transitos.
+    \item Falsos negativos: transitos que el modelo pierde.
+    \item El umbral decide que tan conservador o sensible queremos ser.
+\end{itemize}
+\end{columns}
+\end{frame}
+
+\begin{frame}[fragile]{Parte 3: evaluar el clasificador}
+\inputminted[fontsize=\compactcode]{python}{codes/clase2-p3.py}
+\end{frame}
+
+\begin{frame}{Actividad breve: cambiar la dificultad}
+\begin{block}{Experimentos sugeridos}
+Cambiar un parametro a la vez y observar el efecto en validacion:
+\end{block}
+\begin{itemize}
+    \item aumentar el ruido de las curvas;
+    \item reducir la profundidad del transito;
+    \item mover aleatoriamente el centro del transito;
+    \item cambiar el numero de puntos temporales;
+    \item comparar una red pequena contra una red mas ancha.
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Parte 4: experimento de escala para GPU}
+\inputminted[fontsize=\compactcode]{python}{codes/clase2-p4.py}
+\end{frame}
+
+\begin{frame}{Discusion final}
+\begin{itemize}
+    \item Que diferencia hay entre aprender una funcion fisica y clasificar una senal astronomica?
+    \item Como cambia la interpretacion entre MSE, accuracy, recall y falsos positivos?
+    \item En que punto la GPU se vuelve pedagogicamente visible?
+    \item Que informacion local aprovecharia una CNN cuando veamos imagenes o series mas adelante?
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Cierre de la semana}
+\begin{itemize}
+    \item Las redes densas sirven para mas que salud o datos tabulados: tambien pueden aproximar modelos y reconocer senales cientificas simples.
+    \item La complejidad debe crecer desde la pregunta, no desde la arquitectura.
+    \item La GPU es una herramienta de escala: acelera calculos matriciales grandes, pero no reemplaza validacion ni interpretacion fisica.
+\end{itemize}
+\end{frame}
+
+\end{document}

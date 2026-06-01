@@ -1,0 +1,14 @@
+\begin{tikzpicture}[scale=0.66,transform shape]
+\def\xA{0} \def\xB{2.6} \def\xC{5.2} \def\xD{7.7}
+\foreach \y/\lab in {-1.2/$t$,-0.6/$A$,0/$\gamma$,0.6/$\omega$,1.2/$\phi$} {\node[circle,fill=MidnightBlue!75,draw=white,minimum size=8pt] at (\xA,\y) {};\node[font=\scriptsize] at (\xA-0.45,\y) {\lab};}
+\foreach \y in {-1.5,-0.9,-0.3,0.3,0.9,1.5} {\node[circle,fill=ForestGreen!70,draw=white,minimum size=8pt] at (\xB,\y) {};}
+\foreach \y in {-1.2,-0.6,0,0.6,1.2} {\node[circle,fill=ForestGreen!70,draw=white,minimum size=8pt] at (\xC,\y) {};}
+\node[circle,fill=Crimson!82,draw=white,minimum size=9pt] at (\xD,0) {};
+\foreach \ya in {-1.2,-0.6,0,0.6,1.2} {\foreach \yb in {-1.5,-0.9,-0.3,0.3,0.9,1.5} {\draw[gray!35,thin] (\xA+0.12,\ya)--(\xB-0.12,\yb);}}
+\foreach \ya in {-1.5,-0.9,-0.3,0.3,0.9,1.5} {\foreach \yb in {-1.2,-0.6,0,0.6,1.2} {\draw[gray!35,thin] (\xB+0.12,\ya)--(\xC-0.12,\yb);}}
+\foreach \ya in {-1.2,-0.6,0,0.6,1.2} {\draw[gray!45,thin] (\xC+0.12,\ya)--(\xD-0.12,0);}
+\node[font=\small\bfseries] at (\xA,-2.1) {entrada};
+\node[font=\small\bfseries] at (\xB,-2.1) {densa};
+\node[font=\small\bfseries] at (\xC,-2.1) {densa};
+\node[font=\small\bfseries] at (\xD,-2.1) {$\hat{x}(t)$};
+\end{tikzpicture}

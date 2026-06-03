@@ -1,17 +1,15 @@
-from sklearn.metrics import confusion_matrix, classification_report
-import matplotlib.pyplot as plt
+transit_prob = transit_model.predict(tr_X_test_s, verbose=0).ravel()
+transit_pred = (transit_prob >= 0.5).astype(int)
 
-prob = clf.predict(X_test_s, verbose=0).ravel()
-y_pred = (prob >= 0.5).astype(int)
+print(confusion_matrix(tr_y_test, transit_pred))
+print(classification_report(tr_y_test, transit_pred, target_names=["sin tránsito", "con tránsito"]))
 
-print(confusion_matrix(y_test, y_pred))
-print(classification_report(y_test, y_pred, target_names=["sin transito", "con transito"]))
-
-idx = np.argsort(np.abs(prob - 0.5))[:4]
+# Casos cercanos al umbral: son interesantes para discutir incertidumbre.
+idx = np.argsort(np.abs(transit_prob - 0.5))[:4]
 fig, axes = plt.subplots(2, 2, figsize=(8, 5), sharex=True, sharey=True)
 for ax, j in zip(axes.ravel(), idx):
-    ax.plot(time_grid, X_test[j], lw=1.5)
-    ax.set_title(f"real={y_test[j]}, p={prob[j]:.2f}")
+    ax.plot(transit_time_grid, tr_X_test[j], lw=1.5)
+    ax.set_title(f"real={tr_y_test[j]}, p={transit_prob[j]:.2f}")
     ax.set_xlabel("tiempo relativo")
     ax.set_ylabel("flujo")
 plt.tight_layout()

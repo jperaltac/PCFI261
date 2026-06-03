@@ -3,7 +3,20 @@
 \weektitle{10}{redes densas para senales fisicas y astronomicas}
 \titlegraphic{}
 \title[PCFI261 -- Semana 10]{\Large Modelos Computacionales PCFI261\\Semana 10: redes densas para senales\\fisicas y astronomicas}
-\newcommand{\compactcode}{\fontsize{5}{4.7}\selectfont}
+\newcommand{\compactcode}{\fontsize{5.6}{5.35}\selectfont}
+\setminted[python]{
+    fontsize=\compactcode,
+    breaklines=true,
+    breakanywhere=true,
+    linenos=true,
+    numbersep=3pt,
+    bgcolor=LightGray!12,
+    frame=single,
+    framesep=1.1mm,
+    rulecolor=MidnightBlue!55,
+    baselinestretch=0.82,
+    tabsize=2
+}
 
 \begin{document}
 
@@ -20,7 +33,7 @@
 
 \begin{frame}{Organizacion de la semana}
 \begin{block}{Continuidad desde Semana 09}
-Venimos de redes densas para datos tabulados y del caso Pima Indians Diabetes. Esta semana mantenemos redes densas, escalamiento, train/validation/test y metricas, pero cambiamos el contexto hacia problemas cientificos simulados.
+Venimos de redes densas para datos tabulados y del caso Pima Indians Diabetes. Esta semana mantenemos la misma caja de herramientas: escalamiento, train/validation/test y metricas. Lo que cambia es la forma de pensar los datos: ahora nacen de modelos y mediciones cientificas simuladas.
 \end{block}
 
 \begin{columns}[T,onlytextwidth]
@@ -48,16 +61,16 @@ Venimos de redes densas para datos tabulados y del caso Pima Indians Diabetes. E
 \begin{columns}[T,onlytextwidth]
 \column{0.50\textwidth}
 \begin{block}{No queremos una red mas compleja}
-Queremos una pregunta cientifica mas interesante usando la misma herramienta: capas densas, activaciones, perdida, optimizador y validacion.
+Queremos una pregunta cientifica mas interesante usando una herramienta ya conocida: capas densas, activaciones, perdida, optimizador y validacion.
 \end{block}
 \begin{itemize}
-    \item Clase 1: aprender una funcion fisica continua.
-    \item Clase 2: reconocer una firma astronomica simple.
-    \item En ambas: comparar CPU/GPU sin convertir la clase en ingenieria de hardware.
+    \item Clase 1: de una ecuacion fisica a un emulador numerico.
+    \item Clase 2: de una medicion ruidosa a una decision binaria.
+    \item En ambas: imaginar el flujo experimento $\rightarrow$ datos $\rightarrow$ modelo $\rightarrow$ validacion.
 \end{itemize}
 \column{0.46\textwidth}
 \centering
-\input{Figuras/week10_overview.tex}
+\resizebox{0.96\linewidth}{!}{\input{Figuras/week10_overview.tex}}
 \end{columns}
 \end{frame}
 
@@ -73,11 +86,45 @@ Queremos una pregunta cientifica mas interesante usando la misma herramienta: ca
 
 \begin{frame}{Objetivos de la Clase 1}
 \begin{itemize}
-    \item Construir datos sinteticos de un oscilador amortiguado con parametros variables.
-    \item Entrenar una red densa para aproximar $x(t; A,\gamma,\omega)$.
-    \item Evaluar el error del emulador en curvas que no fueron usadas para entrenar.
-    \item Medir tiempos de entrenamiento en CPU/GPU cuando aumenta el tamano del problema.
+    \item Construir un laboratorio simulado: muchas curvas de osciladores amortiguados con parametros distintos.
+    \item Entrenar una red densa que funcione como \textbf{sustituto rapido} del modelo fisico.
+    \item Usar el emulador con parametros nuevos, como hariamos con un caso nuevo en Pima Indians.
+    \item Discutir para que sirve: exploracion de parametros, ajuste a datos experimentales y simuladores caros.
 \end{itemize}
+\end{frame}
+
+\begin{frame}{Para que serviria este ``cerebro''?}
+\begin{columns}[T,onlytextwidth]
+\column{0.48\textwidth}
+\begin{block}{Analogía con Pima}
+En Pima, entrenamos con muchos pacientes y luego evaluamos a una persona nueva para estimar riesgo.
+\end{block}
+\begin{itemize}
+    \item Entrada nueva: edad, glucosa, IMC, etc.
+    \item Salida: probabilidad de diabetes.
+\end{itemize}
+
+\column{0.48\textwidth}
+\begin{block}{Analogía fisica}
+Aqui entrenamos con muchas curvas y luego evaluamos un sistema nuevo para estimar su respuesta.
+\end{block}
+\begin{itemize}
+    \item Entrada nueva: $A,\gamma,\omega,\phi$ y tiempos.
+    \item Salida: curva esperada $\hat{x}(t)$.
+\end{itemize}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Uso experimental: del dato al parametro}
+\begin{itemize}
+    \item Supongamos que medimos una vibracion real: tenemos puntos ruidosos $x_{\rm obs}(t)$.
+    \item Probamos muchos parametros posibles: $\gamma$, $\omega$, amplitud y fase.
+    \item El emulador predice rapidamente la curva para cada combinacion.
+    \item Elegimos los parametros cuya curva se parece mas a la medicion.
+\end{itemize}
+\begin{alertblock}{Idea central}
+La red no reemplaza la fisica. Sirve como una version rapida y diferenciable del modelo, util cuando simular muchas veces seria lento.
+\end{alertblock}
 \end{frame}
 
 \begin{frame}{Aplicacion fisica: oscilador amortiguado}
@@ -88,35 +135,41 @@ Un oscilador amortiguado simple puede escribirse, en una version docente, como
 \[
  x(t)=A\,e^{-\gamma t}\cos(\omega t+\phi).
 \]
-En lugar de resolver la ecuacion cada vez, entrenamos una red que aprende un \textbf{emulador}: recibe parametros y tiempo, y devuelve una posicion aproximada.
+En un laboratorio real, cada curva podria venir de una medicion con ruido. Aqui controlamos el experimento: elegimos parametros, calculamos la curva y agregamos ruido pequeno.
 
 \begin{block}{Lectura fisica}
-La red no descubre la ley desde cero: aprende una aproximacion numerica a partir de ejemplos generados por un modelo conocido.
+El \textbf{emulador} recibe tiempo y parametros, y devuelve una posicion aproximada. Sirve cuando queremos consultar el modelo muchas veces.
 \end{block}
 
 \column{0.44\textwidth}
 \centering
-\input{Figuras/damped_oscillator.tex}
+\resizebox{0.96\linewidth}{!}{\input{Figuras/damped_oscillator.tex}}
 \end{columns}
 \end{frame}
 
 \begin{frame}{De la ecuacion a una tabla de entrenamiento}
 \centering
+\resizebox{0.96\linewidth}{!}{%
 \begin{tikzpicture}[>=latex,scale=0.86,transform shape]
 \tikzstyle{box}=[draw,rounded corners,very thick,minimum width=2.8cm,minimum height=1.0cm,align=center,font=\small\bfseries]
 \node[box,fill=MidnightBlue!12] (params) at (0,0) {parametros\\$A,\gamma,\omega,\phi$};
-\node[box,fill=ForestGreen!12] (time) at (3.4,0) {tiempos\\$t$};
-\node[box,fill=orange!14] (model) at (6.8,0) {modelo fisico\\$x(t)$};
-\node[box,fill=Purple!12] (table) at (10.2,0) {dataset\\$X,y$};
+\node[box,fill=ForestGreen!12] (time) at (3.4,0) {malla de\\tiempos $t$};
+\node[box,fill=orange!14] (model) at (6.8,0) {modelo o\\experimento};
+\node[box,fill=Purple!12] (table) at (10.2,0) {tabla\\$X,y$};
 \draw[->,very thick] (params) -- (time);
 \draw[->,very thick] (time) -- (model);
 \draw[->,very thick] (model) -- (table);
-\node[font=\small] at (5.1,-1.25) {Cada fila contiene tiempo + parametros como entrada, y posicion como salida.};
+\node[font=\small,align=center,text width=9.8cm] at (5.1,-1.25) {Cada fila representa una observacion: tiempo + condiciones del sistema como entrada, y posicion medida o simulada como salida.};
 \end{tikzpicture}
+}
 \end{frame}
 
-\begin{frame}[fragile]{Parte 1: generar datos fisicos}
-\inputminted[fontsize=\compactcode]{python}{codes/clase1-p1.py}
+\begin{frame}[fragile]{Parte 1A: generar curvas fisicas}
+\inputminted[firstline=1,lastline=23]{python}{codes/clase1-p1.py}
+\end{frame}
+
+\begin{frame}[fragile]{Parte 1B: convertir curvas en dataset}
+\inputminted[firstline=24,lastline=44]{python}{codes/clase1-p1.py}
 \end{frame}
 
 \begin{frame}{Red densa para regresion}
@@ -129,32 +182,32 @@ La red no descubre la ley desde cero: aprende una aproximacion numerica a partir
     \item Activacion final: lineal, no sigmoide.
 \end{itemize}
 \begin{alertblock}{Cambio respecto a Pima}
-Ya no buscamos una probabilidad binaria. Ahora buscamos aproximar una cantidad fisica real.
+Ya no buscamos una probabilidad binaria. Ahora buscamos una magnitud fisica real, por eso importa mirar unidades, escala y distribucion del error.
 \end{alertblock}
 \column{0.44\textwidth}
 \centering
-\input{Figuras/dense_regressor.tex}
+\resizebox{0.98\linewidth}{!}{\input{Figuras/dense_regressor.tex}}
 \end{columns}
 \end{frame}
 
 \begin{frame}[fragile]{Parte 2: entrenar el emulador}
-\inputminted[fontsize=\compactcode]{python}{codes/clase1-p2.py}
+\inputminted{python}{codes/clase1-p2.py}
 \end{frame}
 
 \begin{frame}{Que significa que el emulador funcione}
 \begin{itemize}
     \item Debe reproducir amplitud, fase y decaimiento en curvas no vistas.
-    \item El error no debe concentrarse solo en una zona temporal.
-    \item Si extrapolamos fuera del rango de parametros entrenado, el modelo puede fallar con confianza aparente.
+    \item El error no debe concentrarse solo en una zona temporal o en un rango de parametros.
+    \item Si extrapolamos fuera del rango entrenado, el modelo puede fallar aunque entregue numeros plausibles.
 \end{itemize}
 
 \begin{block}{Pregunta para el curso}
-Si conocemos la ecuacion, por que usar una red? Porque en problemas reales el simulador puede ser caro, ruidoso o no tener inversa simple.
+Si conocemos la ecuacion, por que usar una red? En este ejemplo la ecuacion es barata, pero representa un caso mas general: simuladores fisicos costosos, datos experimentales ruidosos y busquedas de parametros que requieren miles de evaluaciones.
 \end{block}
 \end{frame}
 
 \begin{frame}[fragile]{Parte 3: evaluar una curva nueva}
-\inputminted[fontsize=\compactcode]{python}{codes/clase1-p3.py}
+\inputminted{python}{codes/clase1-p3.py}
 \end{frame}
 
 \begin{frame}{CPU versus GPU: cuando empieza a importar}
@@ -168,12 +221,12 @@ Si conocemos la ecuacion, por que usar una red? Porque en problemas reales el si
 \end{itemize}
 \column{0.44\textwidth}
 \centering
-\input{Figuras/gpu_scaling.tex}
+\resizebox{0.96\linewidth}{!}{\input{Figuras/gpu_scaling.tex}}
 \end{columns}
 \end{frame}
 
 \begin{frame}[fragile]{Parte 4: benchmark simple CPU/GPU}
-\inputminted[fontsize=\compactcode]{python}{codes/clase1-p4.py}
+\inputminted{python}{codes/clase1-p4.py}
 \end{frame}
 
 \begin{frame}{Cierre Clase 1}
@@ -207,7 +260,7 @@ Si conocemos la ecuacion, por que usar una red? Porque en problemas reales el si
 \begin{columns}[T,onlytextwidth]
 \column{0.52\textwidth}
 \justifying
-Cuando un planeta pasa frente a su estrella, el brillo observado puede bajar levemente durante un intervalo corto. En esta clase generamos curvas sinteticas con ruido y entrenamos una red densa para distinguir:
+Cuando un planeta pasa frente a su estrella, el brillo observado puede bajar levemente durante un intervalo corto. Podemos imaginar cada curva como una serie de mediciones de flujo tomadas por un instrumento. En esta clase generamos curvas sinteticas con ruido y entrenamos una red densa para distinguir:
 \begin{itemize}
     \item estrella sin transito;
     \item estrella con una senal de transito simple.
@@ -219,7 +272,7 @@ No haremos astronomia de precision. Buscamos una experiencia docente: senal, rui
 
 \column{0.44\textwidth}
 \centering
-\input{Figuras/exoplanet_transit.tex}
+\resizebox{0.96\linewidth}{!}{\input{Figuras/exoplanet_transit.tex}}
 \end{columns}
 \end{frame}
 
@@ -232,17 +285,21 @@ No haremos astronomia de precision. Buscamos una experiencia docente: senal, rui
 \end{itemize}
 \end{frame}
 
-\begin{frame}[fragile]{Parte 1: simular curvas de luz}
-\inputminted[fontsize=\compactcode]{python}{codes/clase2-p1.py}
+\begin{frame}[fragile]{Parte 1A: simular una curva de luz}
+\inputminted[firstline=1,lastline=21]{python}{codes/clase2-p1.py}
+\end{frame}
+
+\begin{frame}[fragile]{Parte 1B: armar el dataset astronomico}
+\inputminted[firstline=22,lastline=42]{python}{codes/clase2-p1.py}
 \end{frame}
 
 \begin{frame}{Arquitectura del clasificador}
 \centering
-\input{Figuras/transit_classifier.tex}
+\resizebox{0.78\linewidth}{!}{\input{Figuras/transit_classifier.tex}}
 \end{frame}
 
 \begin{frame}[fragile]{Parte 2: entrenar una red densa}
-\inputminted[fontsize=\compactcode]{python}{codes/clase2-p2.py}
+\inputminted{python}{codes/clase2-p2.py}
 \end{frame}
 
 \begin{frame}{Metricas: mirar errores, no solo accuracy}
@@ -264,13 +321,13 @@ No haremos astronomia de precision. Buscamos una experiencia docente: senal, rui
 \begin{itemize}
     \item Falsos positivos: candidatos que no son transitos.
     \item Falsos negativos: transitos que el modelo pierde.
-    \item El umbral decide que tan conservador o sensible queremos ser.
+    \item El umbral decide si preferimos ser conservadores o sensibles.
 \end{itemize}
 \end{columns}
 \end{frame}
 
 \begin{frame}[fragile]{Parte 3: evaluar el clasificador}
-\inputminted[fontsize=\compactcode]{python}{codes/clase2-p3.py}
+\inputminted{python}{codes/clase2-p3.py}
 \end{frame}
 
 \begin{frame}{Actividad breve: cambiar la dificultad}
@@ -284,10 +341,13 @@ Cambiar un parametro a la vez y observar el efecto en validacion:
     \item cambiar el numero de puntos temporales;
     \item comparar una red pequena contra una red mas ancha.
 \end{itemize}
+\begin{alertblock}{Idea docente}
+Cada cambio responde una pregunta experimental: cuanto ruido tolera el modelo?, que senales deja de detectar?, donde aparecen falsos positivos?
+\end{alertblock}
 \end{frame}
 
 \begin{frame}[fragile]{Parte 4: experimento de escala para GPU}
-\inputminted[fontsize=\compactcode]{python}{codes/clase2-p4.py}
+\inputminted{python}{codes/clase2-p4.py}
 \end{frame}
 
 \begin{frame}{Discusion final}

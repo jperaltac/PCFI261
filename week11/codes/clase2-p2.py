@@ -1,0 +1,15 @@
+plt.figure(figsize=(7, 4))
+plt.plot(dense_history.history["val_accuracy"], "o-", label="densa")
+plt.plot(cnn_history.history["val_accuracy"], "o-", label="CNN")
+plt.xlabel("epoca")
+plt.ylabel("accuracy de validacion")
+plt.ylim(0.90, 1.00)
+plt.grid(alpha=0.3)
+plt.legend()
+plt.show()
+
+dense_loss, dense_acc = dense_model.evaluate(x_test, y_test, verbose=0)
+cnn_loss, cnn_acc = cnn_model.evaluate(x_test_cnn, y_test, verbose=0)
+
+print(f"red densa | loss={dense_loss:.4f} | acc={dense_acc:.4f}")
+print(f"CNN       | loss={cnn_loss:.4f} | acc={cnn_acc:.4f}")

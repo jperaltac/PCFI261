@@ -3,7 +3,7 @@
 \weektitle{11}{redes convolucionales con keras}
 \titlegraphic{}
 \title[PCFI261 -- Semana 11]{\Large Modelos Computacionales PCFI261\\Semana 11: redes convolucionales\\con Keras}
-\newcommand{\compactcode}{\fontsize{5.6}{5.35}\selectfont}
+\newcommand{\compactcode}{\fontsize{5.35}{5.1}\selectfont}
 \setminted[python]{
     fontsize=\compactcode,
     breaklines=true,
@@ -14,7 +14,7 @@
     frame=single,
     framesep=1.1mm,
     rulecolor=MidnightBlue!55,
-    baselinestretch=0.82,
+    baselinestretch=0.78,
     tabsize=2
 }
 
@@ -106,7 +106,7 @@ Clasificaremos digitos escritos a mano. Primero usamos una red densa que mira la
 
 \begin{frame}{MNIST como laboratorio docente}
 \begin{columns}[T,onlytextwidth]
-\column{0.55\textwidth}
+\column{0.50\textwidth}
 \justifying
 MNIST contiene imagenes pequenas de digitos escritos a mano. Cada ejemplo tiene una imagen de $28\times28$ pixeles y una etiqueta entre 0 y 9.
 \begin{itemize}
@@ -115,7 +115,11 @@ MNIST contiene imagenes pequenas de digitos escritos a mano. Cada ejemplo tiene 
     \item Ventaja: entrenamiento rapido y visualmente interpretable.
     \item Limite: es mucho mas limpio que una fotografia real tomada por estudiantes.
 \end{itemize}
-\column{0.40\textwidth}
+\column{0.46\textwidth}
+\centering
+\includegraphics[width=\linewidth]{Figuras/mnist.png}\\[-0.05cm]
+\scriptsize Ejemplos de digitos: misma tarea, muchas formas de escribir.
+\vspace{0.18cm}
 \begin{block}{Pregunta guia}
 Si una imagen es una matriz, que perdemos cuando la transformamos en un vector?
 \end{block}
@@ -128,16 +132,25 @@ Si una imagen es una matriz, que perdemos cuando la transformamos en un vector?
 
 \begin{frame}{De imagen a vector}
 \begin{columns}[T,onlytextwidth]
-\column{0.46\textwidth}
+\column{0.38\textwidth}
 \begin{itemize}
     \item Una red densa no ve filas, columnas ni vecindad.
     \item \texttt{Flatten} transforma $28\times28$ en $784$ entradas.
     \item La red aun puede aprender patrones, pero debe reconstruir relaciones espaciales desde cero.
 \end{itemize}
-\column{0.50\textwidth}
+\column{0.58\textwidth}
 \centering
-\resizebox{0.98\linewidth}{!}{\input{Figuras/dense_vs_cnn.tex}}
+\includegraphics[width=\linewidth]{Figuras/didacticas/mnist_matrix_flatten.png}
 \end{columns}
+\end{frame}
+
+\begin{frame}{Dos formas de mirar la misma imagen}
+\centering
+\resizebox{0.96\linewidth}{!}{\input{Figuras/dense_vs_cnn.tex}}
+\vspace{0.2cm}
+\begin{block}{Transicion pedagogica}
+La red densa sera nuestra linea base. La CNN aparece como respuesta a una pregunta concreta: como conservar y reutilizar relaciones locales entre pixeles?
+\end{block}
 \end{frame}
 
 \begin{frame}{Clasificacion multiclase}
@@ -172,6 +185,23 @@ Antes de pasar a la CNN, observar ejemplos mal clasificados y responder:
 \inputminted{python}{codes/clase1-p3.py}
 \end{frame}
 
+\begin{frame}{Leer errores, no solo accuracy}
+\begin{columns}[T,onlytextwidth]
+\column{0.50\textwidth}
+\begin{itemize}
+    \item La matriz de confusion muestra que clases se confunden.
+    \item La diagonal resume aciertos; los valores fuera de la diagonal son errores especificos.
+    \item Para discutir modelos de imagenes conviene mirar ejemplos, no solo promedios.
+\end{itemize}
+\begin{alertblock}{Pregunta para la sala}
+Si el modelo confunde 4 con 9, que parte visual del digito deberiamos inspeccionar?
+\end{alertblock}
+\column{0.46\textwidth}
+\centering
+\includegraphics[width=\linewidth,height=0.70\textheight,keepaspectratio]{Figuras/didacticas/confusion_matrix_example.png}
+\end{columns}
+\end{frame}
+
 \begin{frame}{Cierre Clase 1}
 \begin{itemize}
     \item Una red densa es una linea base razonable para MNIST.
@@ -202,23 +232,33 @@ Antes de pasar a la CNN, observar ejemplos mal clasificados y responder:
 
 \begin{frame}{Que hace una convolucion}
 \begin{columns}[T,onlytextwidth]
-\column{0.52\textwidth}
+\column{0.42\textwidth}
+\small
 \begin{itemize}
     \item Un filtro pequeno recorre la imagen.
     \item El mismo filtro se reutiliza en distintas posiciones.
     \item Las primeras capas pueden detectar bordes, trazos o esquinas.
-    \item El pooling resume regiones y reduce sensibilidad a pequenos desplazamientos.
+    \item El pooling resume regiones y reduce sensibilidad a desplazamientos pequenos.
 \end{itemize}
-\begin{block}{Idea computacional}
-La CNN no memoriza cada pixel de manera independiente: aprende patrones locales que pueden aparecer en muchas zonas.
-\end{block}
-\column{0.44\textwidth}
+\textbf{Idea computacional:} la CNN aprende patrones locales que pueden aparecer en muchas zonas.
+\column{0.54\textwidth}
 \centering
-\resizebox{0.98\linewidth}{!}{\input{Figuras/cnn_pipeline.tex}}
+\includegraphics[width=0.94\linewidth]{Figuras/didacticas/convolution_window.png}
 \end{columns}
 \end{frame}
 
+\begin{frame}{Del filtro al clasificador}
+\centering
+\resizebox{0.96\linewidth}{!}{\input{Figuras/cnn_pipeline.tex}}
+\vspace{0.25cm}
+\begin{block}{Lectura por capas}
+Las primeras capas responden a trazos simples. Las capas finales combinan esos trazos para decidir entre las 10 clases.
+\end{block}
+\end{frame}
+
 \begin{frame}{Arquitectura propuesta}
+\begin{columns}[T,onlytextwidth]
+\column{0.45\textwidth}
 \begin{itemize}
     \item Entrada: imagen $28\times28\times1$.
     \item Bloque 1: convolucion con pocos filtros y pooling.
@@ -228,6 +268,10 @@ La CNN no memoriza cada pixel de manera independiente: aprende patrones locales 
 \begin{alertblock}{Escala docente}
 La red es intencionalmente pequena. Queremos que entrene rapido durante la clase y que la mejora conceptual sea visible.
 \end{alertblock}
+\column{0.51\textwidth}
+\centering
+\includegraphics[width=\linewidth]{Figuras/didacticas/pooling_demo.png}
+\end{columns}
 \end{frame}
 
 \begin{frame}[fragile]{Parte 1: entrenar una CNN}
@@ -249,20 +293,38 @@ La red es intencionalmente pequena. Queremos que entrene rapido durante la clase
 
 \begin{frame}{De MNIST a una foto real}
 \begin{columns}[T,onlytextwidth]
-\column{0.52\textwidth}
+\column{0.43\textwidth}
 \begin{itemize}
     \item La foto puede tener sombras, fondo irregular, rotacion y grosor distinto.
     \item Hay que convertirla a escala de grises, invertir si hace falta y llevarla a $28\times28$.
     \item El modelo no ``ve'' una foto: ve un arreglo numerico parecido al formato de entrenamiento.
 \end{itemize}
-\column{0.44\textwidth}
+\column{0.53\textwidth}
+\centering
+\includegraphics[width=\linewidth]{Figuras/didacticas/photo_preprocess_pipeline.png}
+\vspace{0.12cm}
 \begin{block}{Actividad}
 Cada grupo fotografia un numero escrito en papel, lo procesa con el codigo y observa la prediccion de la red que entreno.
 \end{block}
-\begin{alertblock}{Discusion}
-Cuando falle, no basta decir que ``la red es mala''. Hay que mirar si el dato de entrada se parece o no a MNIST.
+\end{columns}
+\end{frame}
+
+\begin{frame}{Cuando una prediccion falla}
+\begin{columns}[T,onlytextwidth]
+\column{0.48\textwidth}
+\begin{block}{Revisar el dato}
+Antes de culpar a la arquitectura, mirar contraste, centrado, tamano del digito, sombras y orientacion.
+\end{block}
+\column{0.48\textwidth}
+\begin{alertblock}{Revisar el modelo}
+Despues comparar confianza, matriz de confusion y ejemplos parecidos del set de entrenamiento.
 \end{alertblock}
 \end{columns}
+\vspace{0.25cm}
+\begin{itemize}
+    \item El error puede venir del preprocesamiento, de la escritura o de una limitacion real del modelo.
+    \item Esta separacion ayuda a pensar como cientificos computacionales: dato, modelo y validacion se revisan juntos.
+\end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]{Parte 3: fotografiar un numero}

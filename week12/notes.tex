@@ -1,0 +1,367 @@
+\input{../latex/preamble-beamer.tex}
+
+\weektitle{12}{redes informadas por fisica y cierre del curso}
+\titlegraphic{}
+\title[PCFI261 -- Semana 12]{\Large Modelos Computacionales PCFI261\\Semana 12: redes informadas por fisica\\y cierre del curso}
+
+\newcommand{\compactcode}{\fontsize{6.0}{5.8}\selectfont}
+\setminted[python]{fontsize=\compactcode,breaklines=true,breakanywhere=true,linenos=true,numbersep=3pt,bgcolor=LightGray!12,frame=single,framesep=1.1mm,rulecolor=MidnightBlue!55,baselinestretch=0.86,tabsize=2}
+
+\begin{document}
+
+\begin{frame}[plain]
+\centering
+\vfill
+{\Large\bfseries Modelos Computacionales PCFI261}\\[0.25cm]
+{\large Semana 12: redes informadas por fisica\\y cierre del curso}\\[0.7cm]
+{\large Joaquin Peralta}\\[0.15cm]
+{\small \texttt{joaquin.peralta@unab.cl}}\\[0.35cm]
+{\small Universidad Andres Bello}
+\vfill
+\end{frame}
+
+\begin{frame}{Organizacion de la semana}
+\begin{block}{Clase final del curso}
+La Semana 12 cierra el curso con un flujo completo: observacion visual, extraccion de datos, red neuronal con Keras y red informada por fisica. La pregunta central no es solo si una red ajusta datos, sino que significa que un modelo computacional respete una ley fisica.
+\end{block}
+\begin{columns}[T,onlytextwidth]
+\column{0.48\textwidth}
+\textbf{Clase 1}
+\begin{itemize}
+    \item de imagenes a trayectoria;
+    \item datos con unidades y escala;
+    \item red neuronal con \texttt{tensorflow.keras};
+    \item curvatura aprendida y estimacion de $g$.
+\end{itemize}
+\column{0.48\textwidth}
+\textbf{Clase 2}
+\begin{itemize}
+    \item perdida informada por fisica;
+    \item derivadas con \texttt{tf.GradientTape};
+    \item aprendizaje simultaneo de $y_\theta(t)$ y $g$;
+    \item cierre: datos, modelo, validacion e interpretacion.
+\end{itemize}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Objetivos de aprendizaje}
+\begin{itemize}
+    \item Reconstruir una trayectoria a partir de una secuencia simple de imagenes.
+    \item Entrenar una red neuronal con \texttt{tensorflow.keras} para aproximar $x(t)$ e $y(t)$.
+    \item Usar diferenciacion automatica de TensorFlow para calcular derivadas temporales.
+    \item Construir una funcion de perdida que combine datos y una ley fisica.
+    \item Comparar un modelo puramente flexible con un modelo informado por fisica.
+    \item Sintetizar el ciclo completo de modelamiento computacional trabajado en el curso.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Continuidad desde las semanas anteriores}
+\begin{itemize}
+    \item Semanas iniciales: discretizacion, integracion numerica, simulacion y errores.
+    \item Semanas intermedias: modelos computacionales, analisis de datos y validacion.
+    \item Semanas 09--11: redes neuronales, Keras, senales e imagenes.
+    \item Semana 12: una red neuronal no reemplaza la fisica; la incorporamos como restriccion.
+\end{itemize}
+\begin{alertblock}{Idea de cierre}
+Un modelo computacional cientifico no se evalua solo por ajustar datos. Tambien debe tener unidades, supuestos claros, validacion y una interpretacion fisica defendible.
+\end{alertblock}
+\end{frame}
+
+\section{Clase 1}
+
+\begin{frame}[plain]
+\centering
+\vfill
+{\Huge \bfseries Clase 1}\\[0.4cm]
+{\Large De imagenes a datos y de datos a una red neuronal}
+\vfill
+\end{frame}
+
+\begin{frame}{Objetivos de la Clase 1}
+\begin{itemize}
+    \item Entender como se obtiene una tabla de trayectoria desde frames de video.
+    \item Identificar los supuestos de escala, origen y segmentacion.
+    \item Entrenar una red neuronal densa para aprender $x(t)$ e $y(t)$.
+    \item Estimar la aceleracion vertical a partir de la curvatura aprendida por la red.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Problema fisico y observacional}
+\begin{columns}[T,onlytextwidth]
+\column{0.52\textwidth}
+\begin{block}{Situacion}
+Observamos una pelota roja en movimiento. No partimos desde una tabla ideal: primero debemos convertir imagenes en datos numericos.
+\end{block}
+\begin{itemize}
+    \item Entrada inicial: frames del movimiento.
+    \item Dato intermedio: centro de la pelota en pixeles.
+    \item Dato fisico: posicion en metros y tiempo en segundos.
+    \item Modelo esperado: movimiento de proyectil sin roce.
+\end{itemize}
+\column{0.44\textwidth}
+\begin{alertblock}{Supuestos}
+\begin{itemize}
+    \item camara fija;
+    \item escala conocida;
+    \item objeto segmentable por color;
+    \item perspectiva despreciable.
+\end{itemize}
+\end{alertblock}
+\end{columns}
+\end{frame}
+
+\begin{frame}[fragile]{Notebook 01: extraer trayectoria}
+\begin{minted}{python}
+mask = (arr[:, :, 0] > 180) & (arr[:, :, 1] < 120) & (arr[:, :, 2] < 120)
+ys, xs = np.where(mask)
+cx = xs.mean(); cy = ys.mean()
+x_m = (cx - origin_px[0]) / px_per_m
+y_m = (origin_px[1] - cy) / px_per_m
+\end{minted}
+\begin{block}{Lectura docente}
+La parte importante no es que el detector sea sofisticado. La parte importante es reconocer donde entran los supuestos que convierten pixeles en magnitudes fisicas.
+\end{block}
+\end{frame}
+
+\begin{frame}{De datos a modelo flexible}
+\begin{itemize}
+    \item Con la tabla \texttt{t, x, y}, podemos ajustar un modelo.
+    \item Un ajuste polinomial seria natural para un proyectil ideal.
+    \item Esta semana preguntamos que aprende una red si no le damos la forma de la parabola.
+    \item Usamos una red densa pequena con entrada $t$ y salida $(x,y)$.
+\end{itemize}
+\begin{alertblock}{Decision de implementacion}
+Se usa \texttt{tensorflow.keras} para mantener continuidad con las semanas previas del curso y evitar cambios de backend innecesarios.
+\end{alertblock}
+\end{frame}
+
+\begin{frame}[fragile]{Notebook 02: red neuronal con Keras}
+\begin{minted}{python}
+from tensorflow import keras
+from tensorflow.keras import layers
+model = keras.Sequential([
+    layers.Input(shape=(1,)),
+    layers.Dense(32, activation="tanh"),
+    layers.Dense(32, activation="tanh"),
+    layers.Dense(2)
+])
+model.compile(optimizer=keras.optimizers.Adam(0.01), loss="mse")
+\end{minted}
+\end{frame}
+
+\begin{frame}{Que esta aprendiendo la red}
+\begin{columns}[T,onlytextwidth]
+\column{0.50\textwidth}
+\begin{itemize}
+    \item La red aproxima una funcion continua.
+    \item La entrada es un escalar: tiempo.
+    \item La salida tiene dos componentes: posicion horizontal y vertical.
+    \item El ajuste se evalua contra datos, no contra una ecuacion fisica.
+\end{itemize}
+\column{0.46\textwidth}
+\begin{block}{Pregunta clave}
+Si el error contra datos es pequeno, podemos afirmar que la red aprendio la ley del movimiento?
+\end{block}
+\begin{alertblock}{Respuesta corta}
+No necesariamente. Ajustar puntos e identificar una ley son tareas relacionadas, pero no equivalentes.
+\end{alertblock}
+\end{columns}
+\end{frame}
+
+\begin{frame}[fragile]{Curvatura mediante TensorFlow}
+\begin{minted}{python}
+t_tf = tf.convert_to_tensor(t.reshape(-1, 1), dtype=tf.float32)
+with tf.GradientTape() as tape2:
+    tape2.watch(t_tf)
+    with tf.GradientTape() as tape1:
+        tape1.watch(t_tf)
+        y_out = model(t_tf, training=False)[:, 1:2]
+    dy_dt = tape1.gradient(y_out, t_tf)
+d2y_dt2 = tape2.gradient(dy_dt, t_tf)
+g_est = -float(tf.reduce_mean(d2y_dt2).numpy())
+\end{minted}
+\begin{block}{Interpretacion}
+La diferenciacion automatica permite inspeccionar la curvatura de la funcion aprendida. Si $d^2y/dt^2 \approx -g$, la red es compatible con un tiro ideal.
+\end{block}
+\end{frame}
+
+\begin{frame}{Actividad guiada de la Clase 1}
+\begin{enumerate}
+    \item Ejecutar \texttt{01\_extraccion\_trayectoria.ipynb}.
+    \item Revisar la tabla \texttt{trajectory\_extracted.csv}.
+    \item Ejecutar \texttt{02\_aprendizaje\_con\_red\_neuronal.ipynb}.
+    \item Comparar datos y prediccion de la red.
+    \item Estimar $g$ desde la segunda derivada aprendida.
+    \item Discutir si el resultado es estable al cambiar epocas, neuronas o tasa de aprendizaje.
+\end{enumerate}
+\end{frame}
+
+\begin{frame}{Cierre Clase 1}
+\begin{itemize}
+    \item Ya recorrimos imagenes $\rightarrow$ datos $\rightarrow$ red neuronal.
+    \item La red puede interpolar una trayectoria simple con bajo error.
+    \item La curvatura aprendida permite hacer una primera lectura fisica.
+    \item Falta una pieza: obligar al modelo a respetar la ecuacion durante el entrenamiento.
+\end{itemize}
+\end{frame}
+
+\section{Clase 2}
+
+\begin{frame}[plain]
+\centering
+\vfill
+{\Huge \bfseries Clase 2}\\[0.4cm]
+{\Large Red informada por fisica y cierre del curso}
+\vfill
+\end{frame}
+
+\begin{frame}{Objetivos de la Clase 2}
+\begin{itemize}
+    \item Definir una red $y_\theta(t)$ para la coordenada vertical.
+    \item Introducir un parametro aprendible $g$.
+    \item Construir una perdida con datos y residuo fisico.
+    \item Entrenar el modelo con un bucle explicito de TensorFlow/Keras.
+    \item Discutir interpretabilidad, extrapolacion y limites del enfoque.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{De red libre a red informada}
+\begin{columns}[T,onlytextwidth]
+\column{0.48\textwidth}
+\textbf{Red libre}
+\begin{itemize}
+    \item minimiza error contra datos;
+    \item puede interpolar bien;
+    \item no sabe que existe gravedad;
+    \item su curvatura se revisa despues.
+\end{itemize}
+\column{0.48\textwidth}
+\textbf{Red informada por fisica}
+\begin{itemize}
+    \item minimiza error contra datos;
+    \item penaliza violar la ecuacion;
+    \item aprende un parametro fisico;
+    \item usa la ley durante el entrenamiento.
+\end{itemize}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Perdida informada por fisica}
+Para el movimiento vertical ideal:
+\[
+    \frac{d^2y}{dt^2} = -g.
+\]
+Definimos una red $y_\theta(t)$ y un parametro aprendible $g$. La perdida total es:
+\[
+    \mathcal{L}=\frac{1}{N}\sum_i \left(y_\theta(t_i)-y_i\right)^2+
+    \alpha\frac{1}{N}\sum_i \left(\frac{d^2y_\theta}{dt^2}(t_i)+g\right)^2.
+\]
+\begin{block}{Rol de $\alpha$}
+Controla cuanto confiamos en la ley fisica respecto de los datos observados. En un laboratorio real, elegir $\alpha$ tambien es una decision de modelamiento.
+\end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Notebook 03: parametro fisico aprendible}
+\begin{minted}{python}
+model = keras.Sequential([
+    layers.Input(shape=(1,)),
+    layers.Dense(32, activation="tanh"),
+    layers.Dense(32, activation="tanh"),
+    layers.Dense(1)
+])
+g_param = tf.Variable([9.0], dtype=tf.float32, name="g_param")
+optimizer = keras.optimizers.Adam(learning_rate=0.01)
+\end{minted}
+\begin{alertblock}{Nota}
+El parametro $g$ se actualiza junto con los pesos de la red. No es un valor fijo impuesto a mano.
+\end{alertblock}
+\end{frame}
+
+\begin{frame}[fragile]{Derivadas para el residuo fisico}
+\begin{minted}{python}
+def segunda_derivada_modelo(t_in, training=True):
+    with tf.GradientTape() as tape2:
+        tape2.watch(t_in)
+        with tf.GradientTape() as tape1:
+            tape1.watch(t_in)
+            y_out = model(t_in, training=training)
+        dy_dt = tape1.gradient(y_out, t_in)
+    d2y_dt2 = tape2.gradient(dy_dt, t_in)
+    return y_out, d2y_dt2
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]{Bucle de entrenamiento}
+\begin{minted}{python}
+with tf.GradientTape() as tape:
+    y_pred = model(t_tensor, training=True)
+    loss_data = tf.reduce_mean(tf.square(y_pred - y_tensor))
+    _, d2y_dt2 = segunda_derivada_modelo(t_tensor, training=True)
+    physics_res = d2y_dt2 + g_param
+    loss_phys = tf.reduce_mean(tf.square(physics_res))
+    loss = loss_data + alpha * loss_phys
+variables = model.trainable_variables + [g_param]
+grads = tape.gradient(loss, variables)
+optimizer.apply_gradients(zip(grads, variables))
+\end{minted}
+\end{frame}
+
+\begin{frame}{Como leer el resultado}
+\begin{itemize}
+    \item Si el error de datos baja, la red esta ajustando las observaciones.
+    \item Si el residuo fisico baja, la red satisface mejor la ecuacion.
+    \item Si $g$ converge cerca de $9.8~\mathrm{m/s^2}$, el parametro aprendido es fisicamente razonable.
+    \item Si el ajuste visual es bueno pero el residuo es grande, el modelo interpola sin respetar la ley.
+\end{itemize}
+\begin{alertblock}{Cuidado}
+Una PINN no vuelve verdaderos los supuestos. Si hay roce, mala escala o mala deteccion, la ecuacion ideal puede ser una restriccion equivocada.
+\end{alertblock}
+\end{frame}
+
+\begin{frame}{Actividad guiada de la Clase 2}
+\begin{enumerate}
+    \item Ejecutar \texttt{03\_red\_informada\_por\_fisica.ipynb}.
+    \item Registrar el valor final aprendido de $g$.
+    \item Comparar grafico de $y(t)$ y residuo fisico.
+    \item Cambiar $\alpha$ y observar el compromiso entre ajuste y ley.
+    \item Comparar con la red libre del notebook 02.
+    \item Discutir que pasaria con datos mas ruidosos o con resistencia del aire.
+\end{enumerate}
+\end{frame}
+
+\begin{frame}{Sintesis del curso}
+\begin{columns}[T,onlytextwidth]
+\column{0.50\textwidth}
+\textbf{Habilidades computacionales}
+\begin{itemize}
+    \item programar modelos reproducibles;
+    \item discretizar ecuaciones;
+    \item simular y analizar resultados;
+    \item entrenar modelos con Keras;
+    \item validar con metricas y graficos.
+\end{itemize}
+\column{0.46\textwidth}
+\textbf{Habilidades cientificas}
+\begin{itemize}
+    \item explicitar supuestos;
+    \item revisar unidades y escalas;
+    \item distinguir ajuste de explicacion;
+    \item interpretar parametros;
+    \item comunicar limitaciones.
+\end{itemize}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Cierre de PCFI261}
+\begin{block}{Mensaje final}
+Modelar computacionalmente no es solo escribir codigo. Es construir una cadena razonada entre un fenomeno, una representacion numerica, un algoritmo, una validacion y una interpretacion.
+\end{block}
+\begin{itemize}
+    \item La simulacion permite explorar consecuencias de leyes conocidas.
+    \item El aprendizaje automatico permite ajustar patrones desde datos.
+    \item La ciencia computacional aparece cuando unimos ambas cosas con criterio fisico.
+    \item Esa es la idea central que esta semana deja instalada para proyectos futuros.
+\end{itemize}
+\end{frame}
+
+\end{document}
